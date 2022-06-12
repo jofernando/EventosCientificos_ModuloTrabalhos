@@ -842,61 +842,37 @@ class EventoController extends Controller
 
     public function salvarForm(Request $request)
     {
-      $evento = Evento::find($request->evento_id);
-      $this->authorize('isCoordenadorOrCoordenadorDasComissoes', $evento);
+        $evento = Evento::find($request->evento_id);
+        $this->authorize('isCoordenadorOrCoordenadorDasComissoes', $evento);
 
-      $modalidade = Modalidade::find($request->modalidade_id);
-      $data = $request->all();
-      // dd($data);
-      $form = $modalidade->forms()->create([
-          'titulo' => $data['tituloForm']
-      ]);
-
-      $radioCont = 0;
-      $checkRqst = $request->checkboxVisibilidade;
-      $i = 0;
-      $checks = [];
-      while ($i < count($checkRqst)) {
-        if($i + 1 < count($checkRqst)) {
-          if ($checkRqst[$i] == "false" && $checkRqst[$i+1] == "false") {
-            array_push($checks, false);
-            $i++;
-          } else {
-            array_push($checks, true);
-            $i+=2;
-          }
-        } else {
-          array_push($checks, false);
-          break;
-        }
-      }
-      foreach ($data['pergunta'] as $index => $value) {
-        $pergunta = $form->perguntas()->create([
-            'pergunta' => $value,
-            'visibilidade' => $checks[$index],
+        $modalidade = Modalidade::find($request->modalidade_id);
+        $data = $request->all();
+        $form = $modalidade->forms()->create([
+            'titulo' => $data['titulo']
         ]);
-
-        $resposta = new Resposta();
-        $resposta->pergunta_id = $pergunta->id;
-        $resposta->save();
-
-        if($data['tipo'][$index] == 'paragrafo'){
-          $paragrafo = new Paragrafo();
-          $resposta->paragrafo()->save($paragrafo);
-
-        }else if($data['tipo'][$index] == 'radio'){
-          $keys = array_keys($data['tituloRadio']);
-          foreach ($data['tituloRadio'][$keys[$radioCont++]] as $titulo) {
-            $resposta->opcoes()->create([
-              'titulo' => $titulo,
-              'tipo' => 'radio',
+        foreach ($data['perguntas'] as $index => $value) {
+            $pergunta = $form->perguntas()->create([
+                'pergunta' => $value,
+                'visibilidade' => $request->has("visibilidades") && array_key_exists($index, $request['visibilidades']),
             ]);
-          }
+
+            $resposta = new Resposta();
+            $resposta->pergunta_id = $pergunta->id;
+            $resposta->save();
+
+            if ($data['tipos'][$index] == 'paragrafo') {
+                $paragrafo = new Paragrafo();
+                $resposta->paragrafo()->save($paragrafo);
+            } elseif ($data['tipos'][$index] == 'radio') {
+                foreach ($data['opcoes'][$index] as $titulo) {
+                    $resposta->opcoes()->create([
+                        'titulo' => $titulo,
+                        'tipo' => 'radio',
+                    ]);
+                }
+            }
         }
-      }
-
-      return view('coordenador.modalidade.atribuirFormulario', compact('evento','modalidade'))->with('message', 'Formulário cadastrado com sucesso');
-
+        return view('coordenador.modalidade.atribuirFormulario', compact('evento','modalidade'))->with('message', 'Formulário cadastrado com sucesso');
     }
 
     public function updateForm(Request $request)
