@@ -12,4 +12,6 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+   .js('node_modules/alpinejs/dist/cdn.js', 'public/js/alpine.js')
+   .js('node_modules/popper.js/dist/popper.js', 'public/js/popper.js')
    .sass('resources/sass/app.scss', 'public/css');
