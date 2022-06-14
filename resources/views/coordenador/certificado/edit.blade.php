@@ -159,9 +159,9 @@
                     <label for="fotoCertificado"><b>Certificado</b></label>
                     <div id="imagem-loader" class="imagem-loader">
                         @if ($certificado->caminho != null)
-                            <img id="logo-preview" src="{{asset('storage/'.$certificado->caminho)}}" alt="">
+                            <img id="logo-preview" class="img-fluid" src="{{asset('storage/'.$certificado->caminho)}}" alt="">
                         @else
-                            <img id="logo-preview" src="{{asset('/img/nova_imagem.PNG')}}" alt="">
+                            <img id="logo-preview" class="img-fluid" src="{{asset('/img/nova_imagem.PNG')}}" alt="">
                         @endif
                     </div>
                     <div style="display: none;">

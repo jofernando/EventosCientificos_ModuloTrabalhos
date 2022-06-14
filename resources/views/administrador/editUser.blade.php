@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="container"  style="position: relative; top: 100px;">
+<div class="container mb-4"  style="position: relative; top: 100px;">
 
 
     {{--dd($user)--}}
@@ -16,7 +16,7 @@
         </div>
         <br>
     @else
-        <div class="row" style="margin-top: 20px; margin-bottom: 20px; font-weight: 2000;">
+        <div class="row" style="margin-bottom: 20px; font-weight: 2000;">
             <div class="col-sm-12">
                 <h1>Completar Cadastro</h1>
             </div>
@@ -416,13 +416,9 @@
 
             </div>
         @endif
-        <div class="row justify-content-center" style="margin: 20px 0 20px 0">
-
-            <div class="col-md-6" style="padding-left:0">
-                {{-- <a class="btn btn-secondary botao-form" href="{{route('home')}}" style="width:100%">Voltar</a> --}}
-            </div>
-            <div class="col-md-6" style="padding-right:0">
-                <button type="submit" class="btn btn-atualizar-perfil botao-form" style="width:100%">
+        <div class="row justify-content-end">
+            <div class="col-md-4 pr-0">
+                <button type="submit" class="btn btn-primary py-2 w-100 text-sm-center">
                     {{ __('Concluir') }}
                 </button>
             </div>
@@ -433,7 +429,7 @@
     </div>
 </div>
 
-@include('componentes.footer')
+
 @endsection
 @section('javascript')
   <script type="text/javascript" >

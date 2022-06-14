@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container content" style="position: relative; top: 50px;">
+<div class="container content" >
     <div class="row justify-content-center">
         <div class="col-md-5">
             <div class="card card-login-cadastro">
@@ -58,7 +58,7 @@
                         <div class="form-group row mb-0">
 
                             <div class="col-md-12">
-                                <button type="submit" class="btn btn-primary" style="width:100%">
+                                <button type="submit" class="btn btn-primary w-100">
                                     {{ __('Login') }}
                                 </button>
                                 <div class="row justify-content-center">
@@ -80,8 +80,6 @@
         </div>
     </div>
 </div>
-<br>
-<br>
-@include('componentes.footer')
+
 
 @endsection

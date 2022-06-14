@@ -2,9 +2,9 @@
 
 @section('content')
 
-<div class="container"  style="position: relative; top: 80px;">
+<div class="container">
 
-    <h2 style="margin-top: 100px; ">{{ Auth()->user()->name }} - Perfil: Coord. Comissão Organizadora</h2>
+    <h2>{{ Auth()->user()->name }} - Perfil: Coord. Comissão Organizadora</h2>
 
        <div class="row justify-content-center d-flex align-items-center">
 	      <div class="col-sm-3 d-flex justify-content-center ">
@@ -13,7 +13,6 @@
 	                  <div class="card-body d-flex justify-content-center">
 	                      <h2 style="padding-top:15px">Editais</h2>
 	                  </div>
-	                 
 	            </div>
 	         </a>
 	      </div>
@@ -47,7 +46,7 @@
 	            </div>
 	         </a>
 	      </div>
-	   </div>    
+	   </div>
 
 </div>
 

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div  id="showcase" style="margin-top:-1rem;">
-<div class="container"style="margin-top: 5rem;">
+<div  id="showcase" class="my-2">
+<div class="container">
   <div class="row justify-content-center" >
     <!-- TITULO: DESTAQUE -->
-    <div class="col-md-12" style="font-size: 20px; margin-top:20px; margin-bottom:20px; text-align:center; color:white">Destaques</div>
+    <h2 class="col-md-12 text-primary text-center mt-2 mb-3">Destaques</h2>
     <!-- SLIDESHOW -->
     <div id="carouselExampleIndicators" class="col-md-11 carousel slide" data-ride="carousel">
       <ol class="carousel-indicators" @if(count($proximosEventos) <= 1) style="display: none;"@endif>
@@ -181,9 +181,9 @@
     @endif
     <!-- MAIS EVENTOS-->
     @if(count($proximosEventos) > 0)
-    <div id="btn-mais-eventos" class="row justify-content-center" style="padding-top:100px">
+    <div class="row justify-content-center" style="padding-top:100px">
       <div class="col-sm-12">
-        <button class="btn" onclick="window.location='{{route('busca.eventos')}}'">+ Ver Todos os Eventos</button>
+        <button class="btn btn-primary" onclick="window.location='{{route('busca.eventos')}}'">+ Ver Todos os Eventos</button>
       </div>
     </div>
     @endif
@@ -532,7 +532,7 @@
   </div>
 </div>
 -->
-@include('componentes.footer')
+
 
 {{-- Fim modal info --}}
   <!-- Modal Login-->

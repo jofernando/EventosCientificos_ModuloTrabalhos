@@ -633,7 +633,7 @@
             </div>
         </div>
     </div>
-    @include('componentes.footer')
+
 @endsection
 @section('javascript')
     <script>

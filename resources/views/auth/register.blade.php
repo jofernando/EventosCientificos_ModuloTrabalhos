@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container content" style="position: relative; top: 50px;">
+<div class="container content my-2" >
 
 
     <div class="row titulo">
@@ -303,7 +303,7 @@
 
 </div>
 
-@include('componentes.footer')
+
 
 @endsection
 
@@ -431,5 +431,5 @@
     });
 
   </script>
-    
+
 @endsection

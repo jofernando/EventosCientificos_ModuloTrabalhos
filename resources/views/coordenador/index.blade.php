@@ -2,8 +2,7 @@
 
 @section('content')
 
-<div class="container"  style="position: relative; top: 80px;">
-
+<div class="container my-2">
     {{-- titulo da página --}}
     <div class="row justify-content-center titulo-detalhes">
         <div class="col-sm-12">
@@ -27,16 +26,16 @@
         </div>
     @endif
     <div class="container-fluid content-row">
-        <div class="row cards-evento-index">
+        <div class="row">
         @foreach ($eventos as $evento)
             @if ($evento->deletado == false)
                 @can('isCoordenadorOrCoordenadorDasComissoes', $evento)
-                    <div class="col-md-4 mt-2">
-                        <div class="card h-100">
+                    <div class="col-md-4 mt-2 d-flex align-items-stretch">
+                        <div class="card">
                             @if(isset($evento->fotoEvento))
-                                <img class="img-card" src="{{asset('storage/'.$evento->fotoEvento)}}" class="card-img-top" alt="..." style="height: 150px;">
+                                <img class="card-img-top" src="{{asset('storage/'.$evento->fotoEvento)}}" class="card-img-top" alt="..." style="height: 150px;">
                             @else
-                                <img class="img-card" src="{{asset('img/colorscheme.png')}}" class="card-img-top" alt="..." style="height: 150px;">
+                                <img class="card-img-top" src="{{asset('img/colorscheme.png')}}" class="card-img-top" alt="..." style="height: 150px;">
                             @endif
                             <div class="card-body">
                                 <div class="row">

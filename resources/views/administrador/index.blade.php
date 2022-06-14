@@ -2,8 +2,8 @@
 
 @section('content')
 
-<div class="container"  style="position: relative; top: 80px;">
-    	<h2 style="margin-top: 100px; ">
+<div class="container"  >
+    	<h2>
     		{{ Auth()->user()->name }} - Perfil: Administrador
     	</h2>
 
