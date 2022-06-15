@@ -26,12 +26,12 @@
         </div>
     @endif
     <div class="container-fluid content-row">
-        <div class="row">
+        <div class="row justify-content-center">
         @foreach ($eventos as $evento)
             @if ($evento->deletado == false)
                 @can('isCoordenadorOrCoordenadorDasComissoes', $evento)
-                    <div class="col-md-4 mt-2 d-flex align-items-stretch">
-                        <div class="card">
+                    <div class="col-sm-9 col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
                             @if(isset($evento->fotoEvento))
                                 <img class="card-img-top" src="{{asset('storage/'.$evento->fotoEvento)}}" class="card-img-top" alt="..." style="height: 150px;">
                             @else
