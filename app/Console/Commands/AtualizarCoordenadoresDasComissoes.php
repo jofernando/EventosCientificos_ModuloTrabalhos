@@ -36,7 +36,7 @@ class AtualizarCoordenadoresDasComissoes extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
@@ -48,5 +48,6 @@ class AtualizarCoordenadoresDasComissoes extends Command
         foreach ($eventos as $evento) {
             CoordComissaoOrganizadora::firstOrCreate(['user_id' => $evento->coord_comissao_organizadora_id, 'eventos_id' => $evento->id]);
         }
+        return 0;
     }
 }
