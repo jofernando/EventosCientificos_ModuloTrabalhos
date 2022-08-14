@@ -1,6 +1,9 @@
 <?php
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -67,8 +70,8 @@ class DatabaseSeeder extends Seeder
           'email_verified_at' => '2020-02-15',
           'enderecoId' => 1,
         ]);
-        
-        
+
+
         // DB::table('users')->insert([  //
         //   'name' => 'Gabriel Revisor',
         //   'email' => 'gabriel.app.dev@gmail.com',
@@ -79,7 +82,7 @@ class DatabaseSeeder extends Seeder
         //   'especProfissional' => 'e',
         //   'email_verified_at' => '2020-02-15',
         //   'enderecoId' => 1,
-        // ]); 
+        // ]);
 
         $evento = DB::table('eventos')->insert([
           'nome'=>'II CONGRESSO REGIONAL DE ZOOTECNIA',
@@ -100,7 +103,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
           'deletado'=>false,
         ]);
 
-        
+
 
 //         $evento = DB::table('eventos')->insert([
 //           'nome'=>'Evento Teste',
@@ -121,7 +124,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
 //           'deletado'=>false,
 //         ]);
         // $user_id = DB::table('eventos')->where('nome','II CONGRESSO REGIONAL DE ZOOTECNIA')->pluck('id');
-        
+
 
         DB::table('form_eventos')->insert([
           'eventoId'                       => 1,
@@ -136,7 +139,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
           'etiquetamoduloinscricao'        => 'Inscrições',
           'etiquetamoduloprogramacao'      => 'Programação',
           'etiquetamoduloorganizacao'      => 'Organização',
-          
+
         ]);
 
         DB::table('form_subm_trabas')->insert([
@@ -210,7 +213,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
           //   'eventoId'  => 2,
           // ]);
         }
-        
+
 
         DB::table('modalidades')->insert([
           'nome'        => 'Resumo',
@@ -240,7 +243,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
         //   'pdf'             =>  null,
         //   'jpg'             =>  null,
         //   'regra'           =>  null,
-        //   'template'        =>  null       
+        //   'template'        =>  null
 
         // ]);
 
@@ -344,7 +347,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
           'tipo_id' => 1,
         ]);
 
-        
+
         DB::table('convidados')->insert([  //
           'nome' => 'Carlos',
           'email' => 'carlos.andre12@live.com',
