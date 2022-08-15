@@ -145,9 +145,7 @@ class InscricaoController extends Controller
             switch ($campo->tipo) {
                 case 'file':
                     $campoSalvo = $inscricao->camposPreenchidos()->where('campo_formulario_id', '=', $campo->id)->first();
-                    if ($campoSalvo != null && Storage::disk()->exists($campoSalvo->pivot->valor)) {
-                        Storage::delete($campoSalvo->pivot->valor);
-                    }
+                    delete_file($campoSalvo->pivot->valor);
                     break;
                 case 'endereco':
                     $endereco = Endereco::find($campo->pivot->valor);
@@ -387,12 +385,8 @@ class InscricaoController extends Controller
                     $inscricao->camposPreenchidos()->updateExistingPivot($campo->id, ['valor' => $request->input('text-'.$campo->id)]);
                 } elseif ($campo->tipo == 'file' && $request->file('file-'.$campo->id) != null) {
                     $campoSalvo = $inscricao->camposPreenchidos()->where('campo_formulario_id', '=', $campo->id)->first();
-                    if ($campoSalvo != null && Storage::disk()->exists($campoSalvo->pivot->valor)) {
-                        Storage::delete($campoSalvo->pivot->valor);
-                    }
-
+                    delete_file($campoSalvo->pivot->valor);
                     $path = Storage::putFileAs('public/eventos/'.$inscricao->evento->id.'/inscricoes/'.$inscricao->id.'/'.$campo->id, $request->file('file-'.$campo->id), $campo->titulo.'.pdf');
-
                     $inscricao->camposPreenchidos()->updateExistingPivot($campo->id, ['valor' => $path]);
                 } elseif ($campo->tipo == 'date' && $request->input('date-'.$campo->id) != null) {
                     $inscricao->camposPreenchidos()->updateExistingPivot($campo->id, ['valor' => $request->input('date-'.$campo->id)]);
@@ -450,7 +444,7 @@ class InscricaoController extends Controller
     {
         $inscricao = Inscricao::find($idInscricao);
         $caminho = $inscricao->camposPreenchidos()->where('campo_formulario_id', '=', $idCampo)->first()->pivot->valor;
-        if (Storage::disk()->exists($caminho)) {
+        if (Storage::exists($caminho)) {
             return Storage::download($caminho);
         }
 

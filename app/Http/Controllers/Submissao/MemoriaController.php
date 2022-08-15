@@ -53,7 +53,7 @@ class MemoriaController extends Controller
             if (! $path) {
                 return redirect()->back('error', 'Não foi possível salvar o arquivo enviado');
             }
-            Storage::disk('public')->delete($memoria->arquivo);
+            delete_file($memoria->arquivo);
             $validatedData['arquivo'] = $path;
         }
         $memoria->fill($validatedData);
@@ -68,7 +68,7 @@ class MemoriaController extends Controller
         $this->authorize('isCoordenadorOrCoordenadorDasComissoes', $evento);
         $memoria = Memoria::find($request->memoria);
         $this->authorize('isCoordenadorOrCoordenadorDasComissoes', $evento);
-        Storage::disk('public')->delete($memoria->arquivo);
+        delete_file($memoria->arquivo);
         $memoria->delete();
 
         return redirect()->back()->with(['mensagem' => 'Registro excluido com sucesso!']);

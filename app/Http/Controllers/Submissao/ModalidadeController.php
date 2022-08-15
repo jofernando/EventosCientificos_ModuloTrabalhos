@@ -274,10 +274,10 @@ class ModalidadeController extends Controller
         $palavras = $modalidadeEdit->palavras;
 
         if ($request->input('maxcaracteres'.$request->modalidadeEditId) != null && $request->input('mincaracteres'.$request->modalidadeEditId) != null && $request->input('maxcaracteres'.$request->modalidadeEditId) <= $request->input('mincaracteres'.$request->modalidadeEditId)) {
-            return redirect()->back()->withErrors(['comparacaocaracteres' => 'Limite máximo de caracteres é menor que limite minimo. Corrija!']);
+            return redirect()->back()->withErrors(['comparacaocaracteres' => 'Limite máximo de caracteres é menor que limite minimo. Corrija!'])->withInput($validatedData);
         }
         if ($request->input('maxpalavras'.$request->modalidadeEditId) != null && $request->input('minpalavras'.$request->modalidadeEditId) != null && $request->input('maxpalavras'.$request->modalidadeEditId) <= $request->input('minpalavras'.$request->modalidadeEditId)) {
-            return redirect()->back()->withErrors(['comparacaopalavras' => 'Limite máximo de palavras é menor que limite minimo. Corrija!']);
+            return redirect()->back()->withErrors(['comparacaopalavras' => 'Limite máximo de palavras é menor que limite minimo. Corrija!'])->withInput($validatedData);
         }
 
         // Condição para opção de caracteres escolhida
@@ -364,8 +364,7 @@ class ModalidadeController extends Controller
 
         // dd($request->file('arquivoRegras'.$request->modalidadeEditId));
         if ($request->file('arquivoRegras'.$request->modalidadeEditId) != null) {
-            $path = $modalidadeEdit->regra;
-            Storage::delete($path);
+            delete_file($modalidadeEdit->regra);
 
             $fileRegras = $request->file('arquivoRegras'.$request->modalidadeEditId);
 
@@ -380,16 +379,12 @@ class ModalidadeController extends Controller
         }
 
         if ($request->input('deleteregra') != null) {
-            $path = $modalidadeEdit->regra;
-            if (Storage::disk()->exists($modalidadeEdit->regra)) {
-                Storage::delete($path);
-            }
+            delete_file($modalidadeEdit->regra);
             $modalidadeEdit->regra = null;
         }
 
         if ($request->file('arquivoTemplates'.$request->modalidadeEditId)) {
-            $path = $modalidadeEdit->template;
-            Storage::delete($path);
+            delete_file($modalidadeEdit->template);
 
             $fileTemplates = $request->file('arquivoTemplates'.$request->modalidadeEditId);
             $pathTemplates = 'templates/'.$modalidadeEdit->nome.'/';
@@ -403,16 +398,12 @@ class ModalidadeController extends Controller
         }
 
         if ($request->input('deletetemplate') != null) {
-            $path = $modalidadeEdit->template;
-            if (Storage::disk()->exists($modalidadeEdit->template)) {
-                Storage::delete($path);
-            }
+            delete_file($modalidadeEdit->template);
             $modalidadeEdit->template = null;
         }
 
         if ($request->file('arquivoModelos'.$request->modalidadeEditId)) {
-            $path = $modalidadeEdit->modelo_apresentacao;
-            Storage::delete($path);
+            delete_file($modalidadeEdit->modelo_apresentacao);
 
             $fileModelos = $request->file('arquivoModelos'.$request->modalidadeEditId);
             $pathModelos = 'modelos/'.$modalidadeEdit->nome.'/';
@@ -426,14 +417,10 @@ class ModalidadeController extends Controller
         }
 
         if ($request->input('deleteapresentacao') != null) {
-            $path = $modalidadeEdit->modelo_apresentacao;
-            if (Storage::disk()->exists($modalidadeEdit->modelo_apresentacao)) {
-                Storage::delete($path);
-            }
+            delete_file($modalidadeEdit->modelo_apresentacao);
             $modalidadeEdit->modelo_apresentacao = null;
         }
         $modalidadeEdit->save();
-        // dd($modalidadeEdit);
 
         return redirect()->back()->with(['mensagem' => 'Modalidade salva com sucesso!']);
     }
@@ -467,7 +454,7 @@ class ModalidadeController extends Controller
     {
         $modalidade = Modalidade::find($id);
 
-        if (Storage::disk()->exists($modalidade->regra)) {
+        if (Storage::exists($modalidade->regra)) {
             $file = Storage::get($modalidade->regra);
             $tipo = Storage::mimeType($modalidade->regra);
 
@@ -486,7 +473,7 @@ class ModalidadeController extends Controller
     {
         $modalidade = Modalidade::find($id);
 
-        if (Storage::disk()->exists($modalidade->modelo_apresentacao)) {
+        if (Storage::exists($modalidade->modelo_apresentacao)) {
             return Storage::download($modalidade->modelo_apresentacao, 'Modelos.'.explode('.', $modalidade->modelo_apresentacao)[1]);
         }
 
@@ -497,7 +484,7 @@ class ModalidadeController extends Controller
     {
         $modalidade = Modalidade::find($id);
 
-        if (Storage::disk()->exists($modalidade->template)) {
+        if (Storage::exists($modalidade->template)) {
             return Storage::download($modalidade->template, 'Template.'.explode('.', $modalidade->template)[1]);
         }
 

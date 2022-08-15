@@ -26,9 +26,9 @@ use App\Models\Users\Revisor;
 use App\Models\Users\User;
 use App\Notifications\SubmissaoTrabalhoNotification;
 use App\Policies\EventoPolicy;
-use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -550,9 +550,7 @@ class TrabalhoController extends Controller
             //Não só fazer o Storage::delete() do arquivo
             $arquivosTrabalho = $trabalho->arquivo()->where('versaoFinal', true)->get();
             foreach ($arquivosTrabalho as $arquivoTrabalho) {
-                if (Storage::disk()->exists($arquivoTrabalho->nome)) {
-                    Storage::delete($arquivoTrabalho->nome);
-                }
+                delete_file($arquivoTrabalho->nome);
                 $arquivoTrabalho->delete();
             }
 
@@ -563,7 +561,7 @@ class TrabalhoController extends Controller
             ]);
 
             /*$arquivoAtual = $trabalho->arquivo()->where('versaoFinal', true)->first();
-            if (Storage::disk()->exists($arquivoAtual->nome)) {
+            if (Storage::exists($arquivoAtual->nome)) {
               Storage::delete($arquivoAtual->nome);
               $arquivoAtual->delete();
             }*/
@@ -658,18 +656,14 @@ class TrabalhoController extends Controller
         }
 
         if ($trabalho->arquivo != null) {
-            foreach ($trabalho->arquivo as $key => $value) {
-                if (Storage::disk()->exists($value->nome)) {
-                    Storage::delete($value->nome);
-                }
+            foreach ($trabalho->arquivo as $arquivo) {
+                delete_file($arquivo->nome);
             }
             $trabalho->arquivo()->delete();
         }
 
         if ($trabalho->atribuicoes != null && $trabalho->atribuicoes->count() > 0) {
-            foreach ($trabalho->atribuicoes as $atrib) {
-                $trabalho->atribuicoes()->detach($atrib->revisor_id);
-            }
+            $trabalho->atribuicoes()->detach($trabalho->atribuicoes->pluck('revisor_id'));
         }
 
         $trabalho->delete();
@@ -825,20 +819,20 @@ class TrabalhoController extends Controller
         || $trabalho->autorId == $usuarioLogado->id
         || $trabalhosCoautor->contains($trabalho->id)) {
             // dd($arquivo);
-            if ($arquivo != null && Storage::disk()->exists($arquivo->nome)) {
+            if ($arquivo != null && Storage::exists($arquivo->nome)) {
                 return Storage::download($arquivo->nome);
             }
 
             return abort(404);
         } elseif ($revisor != null) {
             if ($revisor->trabalhosAtribuidos->contains($trabalho)) {
-                if (Storage::disk()->exists($arquivo->nome)) {
+                if (Storage::exists($arquivo->nome)) {
                     return Storage::download($arquivo->nome);
                 }
 
                 return abort(404);
             } else {
-                if (Storage::disk()->exists($arquivo->nome)) {
+                if (Storage::exists($arquivo->nome)) {
                     return Storage::download($arquivo->nome);
                 }
 
@@ -864,14 +858,14 @@ class TrabalhoController extends Controller
             $arquivo = $trabalho->arquivoAvaliacao()->where([['versaoFinal', true], ['revisorId', $revisor->id]])->first();
             $eventoPolicy = new EventoPolicy();
             if ($eventoPolicy->isCoordenadorOrCoordenadorDaComissaoCientifica(auth()->user(), $trabalho->evento)) {
-                if ($arquivo != null && Storage::disk()->exists($arquivo->nome)) {
+                if ($arquivo != null && Storage::exists($arquivo->nome)) {
                     return Storage::download($arquivo->nome);
                 }
 
                 return abort(404);
             } elseif (($revisor != null && $revisor->id == auth()->user()->id) || ($trabalho->status == 'avaliado' && $trabalho->autorId == auth()->user()->id) || ($trabalho->avaliado($revisor->user) && $trabalho->autorId == auth()->user()->id)) {
                 if ($revisor->trabalhosAtribuidos->contains($trabalho) || ($trabalho->autorId == auth()->user()->id)) {
-                    if (Storage::disk()->exists($arquivo->nome)) {
+                    if (Storage::exists($arquivo->nome)) {
                         return Storage::download($arquivo->nome);
                     }
 
@@ -918,9 +912,7 @@ class TrabalhoController extends Controller
 
             $arquivoCorrecao = $trabalho->arquivoCorrecao()->first();
             if ($arquivoCorrecao != null) {
-                if (Storage::disk()->exists($arquivoCorrecao->caminho)) {
-                    Storage::delete($arquivoCorrecao->caminho);
-                }
+                delete_file($arquivoCorrecao->caminho);
                 $arquivoCorrecao->delete();
             }
 
@@ -943,7 +935,7 @@ class TrabalhoController extends Controller
         $trabalho = Trabalho::find($request->id);
         $this->authorize('permissaoCorrecao', $trabalho);
         $arquivo = $trabalho->arquivoCorrecao()->first();
-        if ($arquivo != null && Storage::disk()->exists($arquivo->caminho)) {
+        if ($arquivo != null && Storage::exists($arquivo->caminho)) {
             return Storage::download($arquivo->caminho);
         } else {
             return abort(404);

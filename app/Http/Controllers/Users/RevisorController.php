@@ -549,9 +549,7 @@ class RevisorController extends Controller
                 $arquivoAvaliacao = $trabalho->arquivoAvaliacao()->whereIn('revisorId', $permissoes_revisao)->first();
             }
             if ($arquivoAvaliacao != null) {
-                if (Storage::disk()->exists($arquivoAvaliacao->nome)) {
-                    Storage::delete($arquivoAvaliacao->nome);
-                }
+                delete_file($arquivoAvaliacao->nome);
                 $arquivoAvaliacao->delete();
             }
 

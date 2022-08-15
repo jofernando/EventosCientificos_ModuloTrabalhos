@@ -1244,7 +1244,7 @@ class EventoController extends Controller
 
             $file = Image::make(Storage::get('public/eventos/'.$evento->id.'/'.$nome));
             $file->resize(600, 600);
-            Storage::delete('storage/eventos/'.$evento->id.'/'.$nome);
+            delete_file('eventos/'.$evento->id.'/'.$nome);
             $file->save((storage_path('app/'.$path.'/'.$nome)));
 
             return 'eventos/'.$evento->id.'/'.$nome;
@@ -1363,9 +1363,7 @@ class EventoController extends Controller
         $endereco->update($data);
 
         if ($request->fotoEvento != null) {
-            if (Storage::disk()->exists('public/'.$evento->fotoEvento)) {
-                Storage::delete('storage/'.$evento->fotoEvento);
-            }
+            delete_file($evento->fotoEvento);
             $file = $request->fotoEvento;
             $path = 'public/eventos/'.$evento->id;
             $nome = $request->file('fotoEvento')->getClientOriginalName();
@@ -1374,9 +1372,7 @@ class EventoController extends Controller
         }
 
         if ($request->icone != null) {
-            if (Storage::disk()->exists('public/'.$evento->icone)) {
-                Storage::delete('storage/'.$evento->icone);
-            }
+            delete_file($evento->icone);
             $file = $request->icone;
             $path = 'public/eventos/'.$evento->id;
             $nome = 'icone.'.$request->file('icone')->getClientOriginalExtension();
@@ -1387,7 +1383,7 @@ class EventoController extends Controller
 
             $file = Image::make(Storage::get('public/'.$evento->icone));
             $file->resize(600, 600);
-            Storage::delete('storage/'.$evento->icone);
+            delete_file($evento->icone);
             $file->save((storage_path('app/'.$path.'/'.$nome)));
         }
 
@@ -1553,7 +1549,7 @@ class EventoController extends Controller
     public function downloadFotoEvento($id)
     {
         $evento = Evento::find($id);
-        if (Storage::disk()->exists('public/'.$evento->fotoEvento)) {
+        if (Storage::exists('public/'.$evento->fotoEvento)) {
             return Storage::download('public/'.$evento->fotoEvento);
         }
 
@@ -1571,9 +1567,7 @@ class EventoController extends Controller
 
         $formEvento = FormEvento::where('eventoId', $id)->first();
 
-        if ($evento->pdf_programacao != null) {
-            Storage::delete('public/'.$evento->pdf_programacao);
-        }
+        delete_file($evento->pdf_programacao, 'public');
 
         if ($request->pdf_programacao != null) {
             $file = $request->pdf_programacao;
@@ -1600,9 +1594,7 @@ class EventoController extends Controller
             'pdf_arquivo' => ['file', 'mimetypes:application/pdf'],
         ]);
 
-        if ($evento->pdf_arquivo != null) {
-            Storage::delete('public/'.$evento->pdf_arquivo);
-        }
+        delete_file($evento->pdf_arquivo, 'public');
 
         if ($request->pdf_arquivo != null) {
             $file = $request->pdf_arquivo;

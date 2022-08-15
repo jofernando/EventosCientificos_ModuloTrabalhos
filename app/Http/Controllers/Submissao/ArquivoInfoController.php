@@ -33,7 +33,7 @@ class ArquivoInfoController extends Controller
 
     public function delete(ArquivoInfo $arquivoInfo)
     {
-        Storage::delete('public/'.$arquivoInfo->path);
+        delete_file($arquivoInfo->path, 'public');
         $arquivoInfo->delete();
 
         return redirect()->back()->with(['success' => 'Arquivo deletado com sucesso!']);
@@ -44,7 +44,7 @@ class ArquivoInfoController extends Controller
         $data = $request->validated();
         $arquivoInfo->nome = $data['nome'];
         if (isset($data['arquivo'])) {
-            Storage::delete('public/'.$arquivoInfo->path);
+            delete_file($arquivoInfo->path, 'public');
             $name = $data['arquivo']->getClientOriginalName();
             $path = 'eventos/'.$arquivoInfo->evento->id.'/arquivos/';
             Storage::putFileAs('public/'.$path, $data['arquivo'], $name);

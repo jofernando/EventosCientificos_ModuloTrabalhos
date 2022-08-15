@@ -143,10 +143,7 @@ class CertificadoController extends Controller
             $validatedData = $request->validate([
                 'fotoCertificado'  => 'required|file|mimes:png,jpeg,jpg|max:2048',
             ]);
-            if (Storage::disk()->exists('public/'.$certificado->caminho)) {
-                Storage::delete('public/'.$certificado->caminho);
-            }
-
+            delete_file($certificado->caminho, 'public');
             $imagem = $request->fotoCertificado;
             $path = 'certificados/'.$evento->id;
             $novo_caminho = $certificado->uploadArquivo($path, true, $imagem);
@@ -262,9 +259,7 @@ class CertificadoController extends Controller
         $certificado = Certificado::find($id);
         $evento = $certificado->evento;
         $this->authorize('isCoordenadorOrCoordenadorDaComissaoOrganizadora', $evento);
-        if (Storage::disk()->exists('public/'.$certificado->caminho)) {
-            Storage::delete('public/'.$certificado->caminho);
-        }
+        delete_file($certificado->caminho, 'public');
         $certificado->delete();
 
         return redirect(route('coord.listarCertificados', ['eventoId' => $evento->id]))->with(['success' => 'Certificado deletado com sucesso.']);
