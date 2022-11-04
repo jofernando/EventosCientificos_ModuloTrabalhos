@@ -114,9 +114,9 @@ class ModalidadeStoreRequest extends FormRequest
         ];
     }
 
-    public function validated()
+    public function validated($key = null, $default = null)
     {
-        $validated = $this->validator->validated();
+        $validated = data_get($this->validator->validated(), $key, $default);
         $validated = array_merge($validated, [
             'pdf' => $this->boolean('pdf'),
             'jpg' => $this->boolean('jpg'),
