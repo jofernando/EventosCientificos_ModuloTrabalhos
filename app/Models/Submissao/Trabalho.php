@@ -89,13 +89,21 @@ class Trabalho extends Model
         return $this->hasMany('App\Models\Submissao\Resposta');
     }
 
+    public function midiasExtra()
+    {
+        return $this->belongsToMany(MidiaExtra::class, 'midia_extras_trabalho', 'trabalho_id', 'midia_extra_id')->withPivot('caminho');
+    }
+
     public function avaliado(User $user)
     {
         $revisor = Revisor::where([['user_id', $user->id], ['areaId', $this->area->id],
             ['modalidadeId', $this->modalidade->id], ])->first();
 
-        return Resposta::where([['trabalho_id', $this->id], ['revisor_id', $revisor->id]])
-      ->get()->count() > 0;
+        if ($revisor == null) {
+            return false;
+        }
+
+        return Resposta::where([['trabalho_id', $this->id], ['revisor_id', $revisor->id]])->exists();
     }
 
     public function getParecerAtribuicao(User $user)

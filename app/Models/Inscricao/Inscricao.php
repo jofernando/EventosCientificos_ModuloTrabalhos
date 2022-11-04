@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Inscricao extends Model
 {
     protected $fillable = [
-        'user_id', 'evento_id', 'pagamento_id', 'promocao_id', 'cupom_desconto_id',
+        'user_id', 'evento_id', 'pagamento_id', 'promocao_id', 'cupom_desconto_id', 'finalizada',
     ];
 
     public function evento()
@@ -37,7 +37,7 @@ class Inscricao extends Model
 
     public function camposPreenchidos()
     {
-        return $this->belongsToMany('App\Models\Inscricao\CampoFormulario', 'valor_campo_extras', 'inscricao_id', 'campo_formulario_id')->withPivot('valor');
+        return $this->belongsToMany('App\Models\Inscricao\CampoFormulario', 'valor_campo_extras', 'inscricao_id', 'campo_formulario_id')->orderBy('campo_formulario_id')->withPivot('valor');
     }
 
     public function categoria()

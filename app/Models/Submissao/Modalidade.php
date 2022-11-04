@@ -3,6 +3,7 @@
 namespace App\Models\Submissao;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Modalidade extends Model
 {
@@ -12,10 +13,11 @@ class Modalidade extends Model
      * @var array
      */
     protected $fillable = [
-        'nome', 'inicioSubmissao', 'fimSubmissao', 'inicioRevisao', 'fimRevisao',
-        'inicioResultado', 'eventoId', 'texto', 'arquivo', 'caracteres', 'mincaracteres',
-        'maxcaracteres', 'palavras', 'minpalavras', 'maxpalavras', 'pdf', 'jpg', 'jpeg', 'png', 'docx', 'odt', 'zip', 'svg',
-        'regra', 'template', 'modelo_apresentacao',
+        'nome', 'inicioSubmissao', 'fimSubmissao', 'inicioRevisao', 'fimRevisao', 'inicioCorrecao', 'fimCorrecao', 'inicioValidacao', 'fimValidacao', 'inicioResultado',
+        'eventoId', 'texto', 'arquivo', 'caracteres', 'mincaracteres',
+        'maxcaracteres', 'palavras', 'minpalavras', 'maxpalavras',
+        'pdf', 'jpg', 'jpeg', 'png', 'docx', 'odt', 'zip', 'svg', 'mp4', 'mp3', 'ogg', 'wav', 'ogv', 'mpg', 'mpeg', 'mkv', 'avi', 'odp', 'pptx', 'csv', 'ods', 'xlsx',
+        'regra', 'template', 'modelo_apresentacao', 'instrucoes',
     ];
 
     public function trabalho()
@@ -47,4 +49,68 @@ class Modalidade extends Model
     {
         return $this->hasMany('App\Models\Submissao\MensagemParecer');
     }
+
+    public function tiposApresentacao()
+    {
+        return $this->hasMany('App\Models\Submissao\TipoApresentacao');
+    }
+
+    /**
+     * Get all of the datasExtras for the Modalidade
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function datasExtras(): HasMany
+    {
+        return $this->hasMany(DataExtra::class);
+    }
+
+    /**
+     * Pega todas as datas extras com que permitem submissão
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function datasExtrasComSubmissao(): HasMany
+    {
+        return $this->hasMany(DataExtra::class)->where('permitir_submissao', true);
+    }
+
+    public function estaEmPeriodoDeSubmissao()
+    {
+        $agora = now();
+        if ($this->inicioSubmissao <= $agora && $this->fimSubmissao >= $agora) {
+            return true;
+        }
+        return $this->datasExtrasComSubmissao()->where('inicio', '<=', $agora)->where('fim', '>=', $agora)->exists();
+    }
+
+    public function getUltimaDataAttribute()
+    {
+        if ($this->datasExtras()->exists()) {
+            $maiorDataExtra = $this->datasExtras()->max('fim');
+            return max($maiorDataExtra, $this->inicioResultado);
+        } else {
+            return $this->inicioResultado;
+        }
+    }
+
+    public function midiasExtra()
+    {
+        return $this->hasMany('App\Models\Submissao\MidiaExtra');
+    }
+
+    public function tiposAceitos()
+    {
+        $extensoes = ['ogg', 'wav', 'ogv', 'mpg', 'mpeg', 'mkv', 'avi', 'odp', 'pptx', 'csv', 'ods', 'xlsx', 'pdf', 'jpg', 'jpeg', 'png', 'docx', 'odt', 'zip', 'svg', 'mp4', 'mp3'];
+        $tiposcadastrados = array_filter($this->getAttributes(), function ($value, $key) use ($extensoes) {
+            if($value == true && in_array($key, $extensoes)) {
+                return $key;
+            };
+        }, ARRAY_FILTER_USE_BOTH);
+        if ($tiposcadastrados != null) {
+            $tiposcadastrados = array_keys($tiposcadastrados);
+        }
+        return $tiposcadastrados;
+    }
 }
+

@@ -201,6 +201,29 @@
                                             </div>
                                         </div>
                                     @endif
+                                    @if ($indice == "apresentacao")
+                                        @if ($modalidade->apresentacao)
+                                            <div class="row justify-content-center mt-4">
+                                                <div class="col-sm-12">
+                                                    <label for="area"
+                                                        class="col-form-label"><strong>{{ __('Forma de apresentação do trabalho') }}</strong>
+                                                    </label>
+                                                    <select name="tipo_apresentacao" id="tipo_apresentacao" class="form-control @error('tipo_apresentacao') is-invalid @enderror" required>
+                                                        <option value="" selected disabled>{{__('-- Selecione a forma de apresentação do trabalho --')}}</option>
+                                                        @foreach ($modalidade->tiposApresentacao as $tipo)
+                                                        <option @if(old('tipo_apresentacao') == $tipo->tipo) selected @endif value="{{$tipo->tipo}}">{{__($tipo->tipo)}}</option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('tipo_apresentacao')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
                                     @if ($indice == "etiquetauploadtrabalho")
                                         <div class="row justify-content-center">
                                             {{-- Submeter trabalho --}}
@@ -216,30 +239,13 @@
                                                             data-btnClass="btn-primary-lmts" name="arquivo" required>
                                                     </div>
                                                     <small><strong>Extensão de arquivos aceitas:</strong>
-                                                        @if($modalidade->pdf == true)
-                                                            <span> / ".pdf"</span>
-                                                        @endif
-                                                        @if($modalidade->jpg == true)
-                                                            <span> / ".jpg"</span>
-                                                        @endif
-                                                        @if($modalidade->jpeg == true)
-                                                            <span> / ".jpeg"</span>
-                                                        @endif
-                                                        @if($modalidade->png == true)
-                                                            <span> / ".png"</span>
-                                                        @endif
-                                                        @if($modalidade->docx == true)
-                                                            <span> / ".docx"</span>
-                                                        @endif
-                                                        @if($modalidade->odt == true)
-                                                            <span> / ".odt"</span>
-                                                        @endif
-                                                        @if($modalidade->zip == true)
-                                                            <span> / ".zip"</span>
-                                                        @endif
-                                                        @if($modalidade->svg == true)
-                                                            <span> / ".svg"</span>
-                                                        @endif. </small>
+                                                        @foreach ($modalidade->tiposAceitos() as $item)
+                                                            @if ($loop->last)
+                                                                <span> .{{$item}}.</span>
+                                                            @else
+                                                                <span> .{{$item}},</span>
+                                                            @endif
+                                                        @endforeach</small>
                                                     @error('arquivo')
                                                     <span class="invalid-feedback" role="alert"
                                                         style="overflow: visible; display:block">
@@ -248,6 +254,38 @@
                                                     @enderror
                                                 </div>
                                             @endif
+                                        </div>
+                                    @endif
+                                    @if ($indice == "midiaExtra")
+                                        <div class="row justify-content-center">
+                                            @foreach ($modalidade->midiasExtra as $midia)
+                                                <div class="col-sm-12" style="margin-top: 20px;">
+                                                    <label for="{{$midia->hyphenizeNome()}}"
+                                                        class="col-form-label"><strong>{{$midia->nome}}</strong>
+                                                    </label>
+                                                    <div class="custom-file">
+                                                        <input type="file" class="filestyle"
+                                                            data-placeholder="Nenhum arquivo" data-text="Selecionar"
+                                                            data-btnClass="btn-primary-lmts" name="{{$midia->hyphenizeNome()}}" required>
+                                                    </div>
+                                                    <small><strong>Extensão de arquivos aceitas:</strong>
+                                                        @foreach ($midia->tiposAceitos() as $item)
+                                                            @if ($loop->first)
+                                                                <span> .{{$item}}</span>
+                                                            @elseif ($loop->last)
+                                                                <span> .{{$item}}.</span>
+                                                            @else
+                                                                <span> .{{$item}},</span>
+                                                            @endif
+                                                        @endforeach</small>
+                                                    @error($midia->nome)
+                                                    <span class="invalid-feedback" role="alert"
+                                                        style="overflow: visible; display:block">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                    @enderror
+                                                </div>
+                                            @endforeach
                                         </div>
                                     @endif
                                     @if ($indice == "etiquetacampoextra1")

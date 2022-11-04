@@ -5,6 +5,8 @@ namespace App\Models\Submissao;
 use App\Models\Users\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Evento extends Model
 {
@@ -44,9 +46,22 @@ class Evento extends Model
         return $this->hasMany('App\Models\Submissao\Modalidade', 'evento_id');
     }
 
+    /**
+     * Retorna o usuário criador do evento
+     * @return BelongsTo
+     */
     public function coordenador()
     {
         return $this->belongsTo('App\Models\Users\User', 'coordenadorId');
+    }
+
+    /**
+     * Retorna os usuários coordenadores atribuídos pelo usuário criador do evento
+     * @return BelongsToMany
+     */
+    public function coordenadoresEvento()
+    {
+        return $this->belongsToMany('App\Models\Users\User', 'coordenador_eventos', 'eventos_id', 'user_id')->using('App\Models\Users\CoordenadorEvento');
     }
 
     public function coordComissaoCientifica()
@@ -125,7 +140,12 @@ class Evento extends Model
 
     public function camposFormulario()
     {
-        return $this->hasMany('App\Models\Inscricao\CampoFormulario', 'evento_id');
+        return $this->hasMany('App\Models\Inscricao\CampoFormulario', 'evento_id')->orderBy('created_at');
+    }
+
+    public function possuiFormularioDeInscricao()
+    {
+        return $this->camposFormulario()->count() > 0 && $this->categoriasParticipantes()->count() > 0;
     }
 
     public function inscricaos()

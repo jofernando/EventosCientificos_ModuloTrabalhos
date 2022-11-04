@@ -67,7 +67,7 @@ class DatabaseSeeder extends Seeder
           'instituicao'     => 'd',
           'celular'    => 2,
           'especProfissional' => 'e',
-          'email_verified_at' => '2020-02-15',
+          'email_verified_at' => now(),
           'enderecoId' => 1,
         ]);
 
@@ -91,8 +91,8 @@ class DatabaseSeeder extends Seeder
 O número máximo de autores por trabalho será seis autores;
 Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo uma (01) página, no formato PDF;',
           'tipo'=>'teste',
-          'dataInicio'=>'2021-02-19',
-          'dataFim'=>'2021-04-20',
+          'dataInicio'=>now()->subDays(30),
+          'dataFim'=>now()->addDays(30),
           'numMaxTrabalhos' => 10,
           'numMaxCoautores' => 10,
           // 'possuiTaxa'=>true,
@@ -218,6 +218,27 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
         DB::table('modalidades')->insert([
           'nome'        => 'Resumo',
           'evento_id'   => 1,
+          'inicioSubmissao' =>  now()->subDays(2),
+          'fimSubmissao'    =>  now()->subDays(1),
+          'inicioRevisao'   =>  now(),
+          'fimRevisao'      =>  now()->addDay(),
+          'inicioCorrecao'  =>  now()->addDays(1),
+          'fimCorrecao'     =>  now()->addDays(2),
+          'inicioValidacao' =>  now()->addDays(3),
+          'fimValidacao'    =>  now()->addDays(4),
+          'inicioResultado' =>  now()->addDays(5),
+          'texto'           =>  null,
+          'arquivo'         =>  null,
+          'caracteres'      =>  true,
+          'mincaracteres'   =>  1,
+          'maxcaracteres'   =>  20,
+          'palavras'        =>  false,
+          'minpalavras'     =>  null,
+          'maxpalavras'     =>  null,
+          'pdf'             =>  null,
+          'jpg'             =>  null,
+          'regra'           =>  null,
+          'template'        =>  null
         ]);
 
         // DB::table('modalidades')->insert([
@@ -265,6 +286,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
             'celular'    => 2,
             'especProfissional' => 'e',
             'enderecoId' => 1,
+            'email_verified_at' => '2020-02-15'
           ]);
 
           if($i < 20){
@@ -356,7 +378,7 @@ Os trabalhos deverão ser submetidos na forma de resumo simples com no máximo u
         ]);
 
         DB::table('datas_atividades')->insert([
-          'data' => '2020-09-21',
+          'data' => now()->addDay(),
           'hora_inicio' => '14:00',
           'hora_fim' => '18:00',
           'atividade_id' => 1,

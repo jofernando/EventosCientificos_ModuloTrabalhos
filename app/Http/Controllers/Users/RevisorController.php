@@ -20,6 +20,8 @@ use App\Models\Submissao\Pergunta;
 use App\Models\Submissao\Trabalho;
 use App\Models\Users\Revisor;
 use App\Models\Users\User;
+use App\Notifications\LembreteRevisorCompletarCadastro;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -345,6 +347,20 @@ class RevisorController extends Controller
         return redirect()->back()->with(['mensagem' => 'E-mails de lembrete enviados!']);
     }
 
+    public function enviarEmailCadastroTodosRevisores(Evento $evento)
+    {
+        $this->authorize('isCoordenadorOrCoordenadorDaComissaoCientifica', $evento);
+        $revisores_ainda_nao_cadastrados = $evento->revisors()->whereHas('user', function(Builder $query){
+            $query->where('usuarioTemp', true);
+        })->get()->map(function($revisor){
+            return $revisor->user;
+        })->unique('id');
+        foreach ($revisores_ainda_nao_cadastrados as $user) {
+            $user->notify(new LembreteRevisorCompletarCadastro($evento, auth()->user()));
+        }
+        return redirect()->back()->with(['mensagem' => 'E-mails de lembrete enviados!']);
+    }
+
     public function listarRevisores($id)
     {
         $evento = Evento::find($id);
@@ -507,8 +523,8 @@ class RevisorController extends Controller
     public function editarRespostasFormulario(Request $request)
     {
         $data = $request->all();
-        // dd($data);
         $paragrafo_checkBox = $request->paragrafo_checkBox;
+        $visivilidade_opcoes = $request->visivilidade_opcoes;
         $trabalho = Trabalho::find($data['trabalho_id']);
         $this->authorize('isCoordenadorOrCoordenadorDasComissoes', $trabalho->evento);
         if ($request->arquivoAvaliacao != null) {
@@ -516,7 +532,7 @@ class RevisorController extends Controller
                 return redirect()->back()->withErrors(['message' => 'Extensão de arquivo enviado é diferente do permitido.']);
             }
 
-            $validatedData = $request->validate([
+            $request->validate([
                 'arquivoAvaliacao' => ['required', 'file', 'max:2048'],
             ]);
         }
@@ -537,6 +553,11 @@ class RevisorController extends Controller
                 } elseif ($pergunta->respostas->first()->opcoes->count() && $opcaoCont < count($data['opcao_id'])) {
                     $opcao = Opcao::find($data['opcao_id'][$opcaoCont++]);
                     $opcao->titulo = $data[$value];
+                    if ($visivilidade_opcoes != null && in_array($opcao->id, $visivilidade_opcoes)) {
+                        $opcao->visibilidade = true;
+                    } else {
+                        $opcao->visibilidade = false;
+                    }
                     $opcao->save();
                 }
             }

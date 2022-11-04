@@ -46,7 +46,9 @@ Route::get('/', function () {
 })->name('cancelarCadastro');
 
 Route::namespace('Submissao')->group(function () {
-  Route::get('/evento/visualizar/{id}','EventoController@show')->name('evento.visualizar');
+  Route::get('/evento/{id}','EventoController@show')->name('evento.visualizar');
+  Route::get('/evento/visualizar/{id}', function ($id) {
+    return redirect()->route('evento.visualizar', $id);});
   Route::view('validarCertificado', 'validar')->name('validarCertificado');
   Route::post('validarCertificado', 'CertificadoController@validar')->name('validarCertificadoPost');
   Route::get('/home', 'Submissao\CertificadoController@validar')->name('home')->middleware('verified', 'isTemp');
@@ -72,6 +74,7 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
     Route::prefix('/admin')->name('admin.')->group(function(){
         Route::get('/home', 'AdministradorController@index')->name('home');
         Route::get('/editais', 'AdministradorController@editais')->name('editais');
+        Route::get('/eventos', 'AdministradorController@eventos')->name('eventos');
         Route::get('/areas', 'AdministradorController@areas')->name('areas');
         Route::get('/users', 'AdministradorController@users')->name('users');
         Route::get('/edit/user/{id}', 'AdministradorController@editUser')->name('editUser');
@@ -228,8 +231,8 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
 
     });
     //Evento
-    Route::get(   '/evento/criar',          'EventoController@create'                    )->name('evento.criar');
-    Route::post(  '/evento/criar',          'EventoController@store'                     )->name('evento.criar');
+    Route::get(   '/criar/evento',          'EventoController@create'                    )->name('evento.criar');
+    Route::post(  '/evento/criar',          'EventoController@store'                     )->name('evento.store');
     Route::delete('/evento/excluir/{id}',   'EventoController@destroy'                   )->name('evento.deletar');
     Route::get(   '/evento/editar/{id}',    'EventoController@edit'                      )->name('evento.editar');
     Route::post(   '/evento/editar/{id}',    'EventoController@update'                   )->name('evento.update');
@@ -275,6 +278,7 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
 
     // rota download do arquivo do trabalho
     Route::get(   '/download-trabalho/{id}',     'TrabalhoController@downloadArquivo'    )->name('downloadTrabalho');
+    Route::get(   '/download-trabalho/{id}/midia-extra/{id_midia}',     'TrabalhoController@downloadMidiaExtra'    )->name('downloadMidiaExtra');
     //rota download do arquivo do trabalho
     Route::get(   '/download-avaliacao',     'TrabalhoController@downloadArquivoAvaliacao'    )->name('downloadAvaliacao');
     Route::get(   '/trabalho/{id}/download-correcao',     'TrabalhoController@downloadArquivoCorrecao'    )->name('downloadCorrecao');
@@ -323,6 +327,7 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
     Route::post(  '/revisor/email',         'RevisorController@enviarEmailRevisor'       )->name('revisor.email');
     Route::get(  '{id}/revisor/convite',    'RevisorController@conviteParaEvento'        )->name('revisor.convite.evento');
     Route::post(  '/revisor/emailTodos',    'RevisorController@enviarEmailTodosRevisores')->name('revisor.emailTodos');
+    Route::post('{evento}/revisor/emailCadastroTodos', 'RevisorController@enviarEmailCadastroTodosRevisores')->name('revisor.emailCadastroTodos');
     Route::get(  '/revisores-por-area/{id}','RevisorController@revisoresPorAreaAjax'     )->name('revisores.area');
     Route::post(  '/remover/revisor/{id}/{evento_id}',  'RevisorController@destroy'                  )->name('remover.revisor');
     Route::get('/area/revisores/trabalhos/area/{area_id}/modalidade/{modalidade_id}', 'RevisorController@indexListarTrabalhos')->name('avaliar.listar.trabalhos.filtro');
@@ -353,6 +358,8 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
 
   // ROTAS DO MODULO DE INSCRIÇÃO
   Route::get('{evento}/inscricoes',  'Inscricao\InscricaoController@inscritos')->name('inscricao.inscritos');
+  Route::get('{evento}/inscricoes/formulario',  'Inscricao\InscricaoController@formulario')->name('inscricao.formulario');
+  Route::get('{evento}/inscricoes/categorias',  'Inscricao\InscricaoController@categorias')->name('inscricao.categorias');
   Route::get('{id}/inscricoes/nova-inscricao',  'Inscricao\InscricaoController@create')->name('inscricao.create');
   Route::post('/inscricoes/inscrever',  'Inscricao\InscricaoController@inscrever')->name('inscricao.inscrever');
   Route::get('inscricoes/atividades-da-promocao','Inscricao\PromocaoController@atividades')->name('promocao.atividades');
@@ -385,8 +392,8 @@ Route::group(['middleware' => [ 'auth','verified', 'isTemp']], function(){
   Route::get('inscricoes/destroy/{id}-cupom',  'Inscricao\CupomDeDescontoController@destroy')->name('cupom.destroy');
 
   Route::post('inscricoes/criar-categoria-participante', 'Inscricao\CategoriaController@store')->name('categoria.participante.store');
-  Route::get('{id}/inscricoes/excluir-categoria',    'Inscricao\CategoriaController@destroy')->name('categoria.destroy');
-  Route::post('{id}/inscricoes/atualizar-categoria', 'Inscricao\CategoriaController@update')->name('categoria.participante.update');
+  Route::delete('{id}/inscricoes/excluir-categoria',    'Inscricao\CategoriaController@destroy')->name('categoria.participante.destroy');
+  Route::put('{id}/inscricoes/atualizar-categoria', 'Inscricao\CategoriaController@update')->name('categoria.participante.update');
   Route::get('valor/categoria',                      'Inscricao\CategoriaController@valorAjax')->name('ajax.valor.categoria');
   Route::get('confirmar-inscricao',            'Inscricao\InscricaoController@store')->name('inscricao.confirmar');
 
@@ -402,6 +409,7 @@ Route::get('/home', 'HomeController@home')->name('home')->middleware('verified',
 
 Route::namespace('Submissao')->group(function () {
   Route::get('{id}/regras',  'ModalidadeController@downloadRegras'  )->name('modalidade.regras.download');
+  Route::get('{modalidade}/instrucoes',  'ModalidadeController@downloadInstrucoes'  )->name('modalidade.instrucoes.download');
   Route::get('{id}/modalidade-arquivo-modelos',  'ModalidadeController@downloadModelos'  )->name('modalidade.modelos.download');
   Route::get('{id}/modalidade-template',      'ModalidadeController@downloadTemplate'  )->name('modalidade.template.download');
 

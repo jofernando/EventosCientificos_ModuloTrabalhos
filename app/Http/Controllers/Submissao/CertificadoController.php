@@ -535,7 +535,7 @@ class CertificadoController extends Controller
                 if ($request->atividade == '0') {
                     $certificados = Certificado::where([['evento_id', $request->eventoId], ['tipo', Certificado::TIPO_ENUM['inscrito_atividade']]])->whereNull('atividade_id')->get();
                 } else {
-                    $certificados = Certificado::where([['evento_id', $request->eventoId], ['tipo', Certificado::TIPO_ENUM['inscrito_atividade']], ['atividade_id', $request->atividade]])->whereNull('atividade_id')->get();
+                    $certificados = Certificado::where([['evento_id', $request->eventoId], ['tipo', Certificado::TIPO_ENUM['inscrito_atividade']], ['atividade_id', $request->atividade]])->get();
                 }
                 break;
             default:
@@ -717,6 +717,7 @@ class CertificadoController extends Controller
                 break;
             case Certificado::TIPO_ENUM['expositor']:
                 $palestras = Palestra::find($certificado->usuarios->pluck('pivot.palestra_id'));
+                $usuarios = $certificado->usuariosPalestrantes;
                 break;
             case Certificado::TIPO_ENUM['outras_comissoes']:
                 $usuario = $certificado->usuarios->first();

@@ -119,6 +119,7 @@
                   <th>Evento</th>
                   <th>ID</th>
                   <th>Título</th>
+                  <th>Apresentação</th>
                   <th style="text-align:center">Coautores</th>
                   <th style="text-align:center">Baixar</th>
                   <th style="text-align:center">Editar</th>
@@ -134,6 +135,7 @@
                   <td>{{$trabalho->evento->nome}}</td>
                   <td>{{$trabalho->id}}</td>
                   <td>{{$trabalho->titulo}}</td>
+                  <td>{{$trabalho->tipo_apresentacao}}</td>
                   <td style="text-align:center">
                     <a data-toggle="modal" data-target="#modalCoautoresTrabalho_{{$trabalho->id}}" style="cursor: pointer;">
                       <img src="{{asset('img/icons/eye-regular.svg')}}" style="width:20px">
@@ -151,12 +153,12 @@
                     @endif
                   </td>
                   <td style="text-align:center">
-                      <a href="#" onclick="return false;" @if($agora <= $trabalho->modalidade->fimSubmissao) data-toggle="modal" data-target="#modalEditarTrabalho_{{$trabalho->id}}" style="color:#114048ff" @else data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Não permitido" data-content="A edição do trabalho só é permitida durante o periodo de submissão." @endif>
+                      <a href="#" onclick="return false;" @if($trabalho->modalidade->estaEmPeriodoDeSubmissao()) data-toggle="modal" data-target="#modalEditarTrabalho_{{$trabalho->id}}" style="color:#114048ff" @else data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Não permitido" data-content="A edição do trabalho só é permitida durante o periodo de submissão." @endif>
                         <img class="" src="{{asset('img/icons/edit-regular.svg')}}" style="width:20px">
                       </a>
                   </td>
                   <td style="text-align:center">
-                    <a href="#" onclick="return false;" @if($agora <= $trabalho->modalidade->fimSubmissao) data-toggle="modal" data-target="#modalExcluirTrabalho_{{$trabalho->id}}" style="color:#114048ff" @else data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Não permitido" data-content="A exclusão do trabalho só é permitida durante o periodo de submissão." @endif>
+                    <a href="#" onclick="return false;" @if($trabalho->modalidade->estaEmPeriodoDeSubmissao()) data-toggle="modal" data-target="#modalExcluirTrabalho_{{$trabalho->id}}" style="color:#114048ff" @else data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Não permitido" data-content="A exclusão do trabalho só é permitida durante o periodo de submissão." @endif>
                       <img class="" src="{{asset('img/icons/trash-alt-regular.svg')}}" style="width:20px">
                     </a>
                   </td>
@@ -311,7 +313,7 @@
 
 
 @foreach ($trabalhos as $trabalho)
-  @if($agora <= $trabalho->modalidade->fimSubmissao)
+  @if($trabalho->modalidade->estaEmPeriodoDeSubmissao())
     <!-- Modal  excluir trabalho -->
     <div class="modal fade" id="modalExcluirTrabalho_{{$trabalho->id}}" tabindex="-1" aria-labelledby="modalExcluirTrabalho_{{$trabalho->id}}Label" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -356,6 +358,8 @@
               @php
                 $formSubTraba = $trabalho->evento->formSubTrab;
                 $ordem = explode(",", $formSubTraba->ordemCampos);
+                array_splice($ordem, 6, 0, "midiaExtra");
+                array_splice( $ordem, 5, 0, "apresentacao");
                 $modalidade = $trabalho->modalidade;
                 $areas = $trabalho->evento->areas;
               @endphp
@@ -540,6 +544,85 @@
                       </div>
                   </div>
                 @endif
+                @if ($indice == "apresentacao")
+                    @if ($trabalho->modalidade->apresentacao)
+                        <div class="row justify-content-center mt-4">
+                            <div class="col-sm-12">
+                                <label for="area"
+                                    class="col-form-label"><strong>{{ __('Forma de apresentação do trabalho') }}</strong>
+                                </label>
+                                <select name="tipo_apresentacao" id="tipo_apresentacao" class="form-control @error('tipo_apresentacao') is-invalid @enderror" required>
+                                    <option value="" selected disabled>{{__('-- Selecione a forma de apresentação do trabalho --')}}</option>
+                                    @foreach ($trabalho->modalidade->tiposApresentacao as $tipo)
+                                    <option @if(old('tipo_apresentacao') == $tipo->tipo || $trabalho->tipo_apresentacao == $tipo->tipo) selected @endif value="{{$tipo->tipo}}">{{__($tipo->tipo)}}</option>
+                                    @endforeach
+                                </select>
+
+                                @error('tipo_apresentacao')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+                    @endif
+                @endif
+                @if ($indice == "midiaExtra")
+                    <div class="row justify-content-center">
+                        @foreach ($modalidade->midiasExtra as $midia)
+                            <div class="col-sm-12" style="margin-top: 20px;">
+                                <label for="{{$midia->hyphenizeNome()}}"
+                                    class="col-form-label"><strong>{{$midia->nome}}</strong>
+                                </label>
+                                <a href="{{route('downloadMidiaExtra', ['id' => $trabalho->id, 'id_midia' => $midia->id])}}">Arquivo atual</a>
+                                <br>
+                                <small>Para trocar o arquivo envie um novo.</small>
+                                <div class="custom-file">
+                                    <input type="file" class="filestyle"
+                                        data-placeholder="Nenhum arquivo" data-text="Selecionar"
+                                        data-btnClass="btn-primary-lmts" name="{{$midia->hyphenizeNome()}}">
+                                </div>
+                                <small><strong>Extensão de arquivos aceitas:</strong>
+                                    @if($midia->pdf == true)
+                                        <span> / ".pdf"</span>
+                                    @endif
+                                    @if($midia->jpg == true)
+                                        <span> / ".jpg"</span>
+                                    @endif
+                                    @if($midia->jpeg == true)
+                                        <span> / ".jpeg"</span>
+                                    @endif
+                                    @if($midia->png == true)
+                                        <span> / ".png"</span>
+                                    @endif
+                                    @if($midia->docx == true)
+                                        <span> / ".docx"</span>
+                                    @endif
+                                    @if($midia->odt == true)
+                                        <span> / ".odt"</span>
+                                    @endif
+                                    @if($midia->zip == true)
+                                        <span> / ".zip"</span>
+                                    @endif
+                                    @if($midia->svg == true)
+                                        <span> / ".svg"</span>
+                                    @endif
+                                    @if($midia->mp4 == true)
+                                        <span> / ".mp4"</span>
+                                    @endif
+                                    @if($midia->mp3 == true)
+                                        <span> / ".mp3"</span>
+                                    @endif. </small>
+                                @error($midia->nome)
+                                <span class="invalid-feedback" role="alert"
+                                    style="overflow: visible; display:block">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
                 @if ($indice == "etiquetauploadtrabalho")
                   <div class="row justify-content-center">
                     {{-- Submeter trabalho --}}
@@ -554,14 +637,16 @@
                           <input type="file" class="filestyle" data-placeholder="Nenhum arquivo" data-text="Selecionar" data-btnClass="btn-primary-lmts" name="arquivo{{$trabalho->id}}">
                         </div>
                         <small>Arquivos aceitos nos formatos
-                          @if($modalidade->pdf == true)<span> - pdf</span>@endif
-                          @if($modalidade->jpg == true)<span> - jpg</span>@endif
-                          @if($modalidade->jpeg == true)<span> - jpeg</span>@endif
-                          @if($modalidade->png == true)<span> - png</span>@endif
-                          @if($modalidade->docx == true)<span> - docx</span>@endif
-                          @if($modalidade->odt == true)<span> - odt</span>@endif
-                          @if($modalidade->zip == true)<span> - zip</span>@endif
-                          @if($modalidade->svg == true)<span> - svg</span>@endif.
+                            @if($trabalho->modalidade->pdf == true)<span> - pdf</span>@endif
+                            @if($trabalho->modalidade->jpg == true)<span> - jpg</span>@endif
+                            @if($trabalho->modalidade->jpeg == true)<span> - jpeg</span>@endif
+                            @if($trabalho->modalidade->png == true)<span> - png</span>@endif
+                            @if($trabalho->modalidade->docx == true)<span> - docx</span>@endif
+                            @if($trabalho->modalidade->odt == true)<span> - odt</span>@endif
+                            @if($trabalho->modalidade->zip == true)<span> - zip</span>@endif
+                            @if($trabalho->modalidade->svg == true)<span> - svg</span>@endif
+                            @if($trabalho->modalidade->mp4 == true)<span> - mp4</span>@endif
+                            @if($trabalho->modalidade->mp3 == true)<span> - mp3</span>@endif.
                         </small>
                         @error('arquivo'.$trabalho->id)
                           <span class="invalid-feedback" role="alert" style="overflow: visible; display:block">

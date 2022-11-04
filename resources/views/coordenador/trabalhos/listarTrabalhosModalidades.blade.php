@@ -88,6 +88,11 @@
                         <i class="fas fa-arrow-alt-circle-down"></i>
                       </a>
                     </th>
+                    @if ($modalidade->midiasExtra)
+                        @foreach ($modalidade->midiasExtra as $midia)
+                            <th scope="col">{{$midia->nome}}</th>
+                        @endforeach
+                    @endif
                     <th scope="col">
                       Área
                       <a href="{{route('coord.listarTrabalhosModalidades',[ 'eventoId' => $evento->id, 'modalidadeId' => $modalidade->id, 'areaId', 'asc', 'rascunho'])}}">
@@ -106,9 +111,12 @@
                         <i class="fas fa-arrow-alt-circle-down"></i>
                       </a>
                     </th>
+                    @if ($modalidade->apresentacao)
+                    <th scope="col">Apresentação</th>
+                    @endif
                     <th scope="col">Revisores</th>
                     <th scope="col">Avaliações</th>
-                    <th scope="col">Data</th>
+                    {{--<th scope="col">Data</th>--}}
                     <th scope="col" style="text-align:center">Atribuir</th>
                     <th scope="col" style="text-align:center">Arquivar</th>
                     <th scope="col" style="text-align:center">Editar</th>
@@ -136,6 +144,19 @@
                             </span>
                         @endif
                       </td>
+                        @if ($modalidade->midiasExtra)
+                            @foreach ($modalidade->midiasExtra as $midia)
+                                <td>
+                                    @if($trabalho->midiasExtra()->where('midia_extra_id', $midia->id)->first() != null)
+                                        <a href="{{route('downloadMidiaExtra', ['id' => $trabalho->id, 'id_midia' => $midia->id])}}" >
+                                            <span class="d-inline-block text-truncate" tabindex="0" data-toggle="tooltip" title="{{$midia->nome}}" style="max-width: 150px;">
+                                                <img class="" src="{{asset('img/icons/file-download-solid.svg')}}" style="width:20px">
+                                            </span>
+                                        </a>
+                                    @endif
+                                </td>
+                            @endforeach
+                        @endif
                       <td>
                         <span class="d-inline-block text-truncate" tabindex="0" data-toggle="tooltip" title="{{$trabalho->area->nome}}" style="max-width: 150px;">
                           {{$trabalho->area->nome}}
@@ -143,14 +164,17 @@
 
                       </td>
                       <td>{{$trabalho->autor->name}}</td>
+                      @if ($modalidade->apresentacao)
+                        <td>{{$trabalho->tipo_apresentacao}}</td>
+                      @endif
                       <td>
                         {{count($trabalho->atribuicoes)}}
                       </td>
                       <td>{{$trabalho->getQuantidadeAvaliacoes()}}</td>
-                      <td>
+                      {{--<td>
                         {{ date("d/m/Y H:i", strtotime($trabalho->created_at) ) }}
 
-                      </td>
+                      </td>--}}
                       <td style="text-align:center">
                         <a href="#" data-toggle="modal" data-target="#modalTrabalho{{$trabalho->id}}">
                           <i class="fas fa-file-alt"></i>
