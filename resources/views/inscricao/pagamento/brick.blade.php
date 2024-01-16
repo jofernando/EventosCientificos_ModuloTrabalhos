@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    <div id="error-bricks" class="alert alert-danger"></div>
     <div id="paymentBrick_container">
     </div>
 @endsection
@@ -78,23 +79,37 @@
                                     "Content-Type": "application/json",
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                                 },
-                                body: JSON.stringify(formData),
+                                body: JSON.stringify(formData)
                             })
-                            .then((response) => window.location.href = '/checkout/status-pagamento/' + evento.id)
-                            .then((response) => {
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Erro na requisição.');
+                                }
+                                return response.json();
+                            })
+                            .then(response => {
+                                if (response.redirect_url) {
+                                    // Redirecionar o usuário para a URL fornecida
+                                    window.location.href = response.redirect_url;
+                                } else {
+                                    console.log('URL de redirecionamento não encontrada na resposta.');
+                                }
                                 resolve();
                             })
-                            .catch((error) => {
-                                // manejar a resposta de erro ao tentar criar um pagamento
+                            .catch(error => {
+                                var errorDiv = document.getElementById('error-bricks');
+                                errorDiv.innerHTML = 'Error na requisição, recarregue a página. Se o error persistir entre em contato com o organizador do evento.'
+                                console.error('Erro na requisição:', error);
                                 reject();
                             });
                         });
                     },
                     onError: (error) => {
                         // callback chamado para todos os casos de erro do Brick
+                        console.log(2);
                         console.error(error);
-                    },
-                },
+                    }
+                }
             };
             window.paymentBrickController = await bricksBuilder.create(
                 "payment",

@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Inscricao\Pagamento;
 use App\Models\Inscricao\TipoPagamento;
 use App\Models\Submissao\Evento;
+use Exception;
 use Illuminate\Http\Request;
+use MercadoPago\Payer;
+use MercadoPago\Payment;
+use MercadoPago\SDK;
 
 class CheckoutController extends Controller
 {
@@ -46,62 +50,23 @@ class CheckoutController extends Controller
         return view('coordenador.programacao.pagamentos', compact('evento', 'inscricaos'));
     }
 
-    private function cartao(Request $request)
+    private function cartao($payment, $contents)
     {
-        \MercadoPago\SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
-        $contents = $request->all();
-        $evento = Evento::find($contents['evento']);
-        $user = auth()->user();
-        $inscricao = $evento->inscricaos()->where('user_id', $user->id)->first();
-        $categoria = $inscricao->categoria;
-
-        $payment = new \MercadoPago\Payment();
-        $payment->transaction_amount = $categoria->valor_total;
         $payment->token = $contents['token'];
         $payment->installments = $contents['installments'];
         $payment->payment_method_id = $contents['payment_method_id'];
         $payment->issuer_id = $contents['issuer_id'];
-        $payer = new \MercadoPago\Payer();
+        $payer = new Payer();
         $payer->email = $contents['payer']['email'];
         $payer->identification = array(
             "type" => $contents['payer']['identification']['type'],
             "number" => $contents['payer']['identification']['number'],
         );
         $payment->payer = $payer;
-        $payment->notification_url = route('checkout.notifications');
-        $payment->save();
-        $response = array(
-            'status' => $payment->status,
-            'status_detail' => $payment->status_detail,
-            'id' => $payment->id,
-        );
-        $tipo_pagamento = TipoPagamento::where('descricao', 'cartao')->first();
-        $descricao = 'Inscrição no evento '.$evento->nome.' com valor de '.$categoria->valor_total;
-        $pagamento = Pagamento::create([
-            'valor' => $categoria->valor_total,
-            'tipo_pagamento_id' => $tipo_pagamento->id,
-            'descricao' => $descricao,
-            'codigo' => $payment->id,
-            'status' => $payment->status,
-        ]);
-        $inscricao->pagamento_id = $pagamento->id;
-        $inscricao->save();
-        return redirect()->route('checkout.statusPagamento', ['evento' => $evento->id]);
     }
 
-    private function pix(Request $request)
+    private function pix($payment, $contents, $user)
     {
-        \MercadoPago\SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
-        $evento = Evento::find($request->evento);
-        $user = auth()->user();
-        $inscricao = $evento->inscricaos()->where('user_id', $user->id)->first();
-        $categoria = $inscricao->categoria;
-        $descricao = 'Inscrição no evento '.$evento->nome.' com valor de '.$categoria->valor_total;
-        $contents = $request->all();
-
-        $payment = new \MercadoPago\Payment();
-        $payment->transaction_amount = $categoria->valor_total;
-        $payment->description = $descricao;
         $payment->payment_method_id = "pix";
         $payment->payer = array(
             "email" => $contents['payer']['email'],
@@ -120,43 +85,11 @@ class CheckoutController extends Controller
                 "federal_unit" => $user->endereco->uf,
             ),
         );
-
-        $payment->notification_url = route('checkout.notifications');
-        $payment->save();
-        $response = array(
-            'status' => $payment->status,
-            'status_detail' => $payment->status_detail,
-            'id' => $payment->id,
-        );
-        $tipo_pagamento = TipoPagamento::where('descricao', 'pix')->first();
-        $descricao = 'Inscrição no evento '.$evento->nome.' com valor de '.$categoria->valor_total;
-        $pagamento = Pagamento::create([
-            'valor' => $categoria->valor_total,
-            'tipo_pagamento_id' => $tipo_pagamento->id,
-            'descricao' => $descricao,
-            'codigo' => $payment->id,
-            'status' => $payment->status,
-        ]);
-        $inscricao->pagamento_id = $pagamento->id;
-        $inscricao->save();
-        return redirect()->route('checkout.statusPagamento', ['evento' => $evento->id]);
     }
 
-    private function boleto(Request $request)
+    private function boleto($payment, $contents)
     {
-        \MercadoPago\SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
-        $contents = $request->all();
-        $evento = Evento::find($contents['evento']);
-        $user = auth()->user();
-        $inscricao = $evento->inscricaos()->where('user_id', $user->id)->first();
-        $categoria = $inscricao->categoria;
-
-        $payment = new \MercadoPago\Payment();
-        $payment->transaction_amount = $contents['transaction_amount'];
-        $descricao = 'Inscrição no evento '.$evento->nome.' com valor de '.$categoria->valor_total;
-        $payment->description = $descricao;
         $payment->payment_method_id = $contents['payment_method_id'];
-
         $payment->payer = array(
             "email" =>  $contents['payer']['email'],
             "first_name" => $contents['payer']['first_name'],
@@ -174,15 +107,43 @@ class CheckoutController extends Controller
                 "federal_unit" => $contents['payer']['address']['federal_unit'],
             ),
         );
-        $payment->notification_url = route('checkout.notifications');
-        $payment->save();
-        $response = array(
-            'status' => $payment->status,
-            'status_detail' => $payment->status_detail,
-            'id' => $payment->id,
-        );
-        $tipo_pagamento = TipoPagamento::where('descricao', 'boleto')->first();
+    }
+
+
+    public function processPayment(Request $request)
+    {
+        SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
+        $contents = $request->all();
+        $evento = Evento::find($contents['evento']);
+        $user = auth()->user();
+        $inscricao = $evento->inscricaos()->where('user_id', $user->id)->first();
+        $categoria = $inscricao->categoria;
         $descricao = 'Inscrição no evento '.$evento->nome.' com valor de '.$categoria->valor_total;
+        $payment = new Payment();
+        $payment->transaction_amount = $categoria->valor_total;
+        $payment->description = $descricao;
+
+        switch ($request['payment_method_id']) {
+            case 'pix':
+                $this->pix($payment, $contents, $user);
+                $tipo_pagamento = TipoPagamento::where('descricao', 'pix')->first();
+                break;
+            case 'bolbradesco':
+            case 'pec':
+                $this->boleto($payment, $contents);
+                $tipo_pagamento = TipoPagamento::where('descricao', 'boleto')->first();
+                break;
+            default:
+                $this->cartao($payment, $contents);
+                $tipo_pagamento = TipoPagamento::where('descricao', 'cartao')->first();
+                break;
+        }
+
+        $payment->notification_url = route('checkout.notifications');
+        $response = $payment->save();
+        if (! $response || $payment->id == null) {
+            throw new Exception($payment->error->message);
+        }
         $pagamento = Pagamento::create([
             'valor' => $categoria->valor_total,
             'tipo_pagamento_id' => $tipo_pagamento->id,
@@ -190,31 +151,22 @@ class CheckoutController extends Controller
             'codigo' => $payment->id,
             'status' => $payment->status,
         ]);
+
         $inscricao->pagamento_id = $pagamento->id;
         $inscricao->save();
-        return redirect()->route('checkout.statusPagamento', ['evento' => $evento->id]);
-    }
-
-    public function processPayment(Request $request)
-    {
-        switch ($request['payment_method_id']) {
-            case 'pix':
-                return $this->pix($request);
-            case 'bolbradesco':
-            case 'pec':
-                return $this->boleto($request);
-            default:
-                return $this->cartao($request);
-        }
+        $data = [
+            'redirect_url' => route('checkout.statusPagamento', $evento),
+        ];
+        return response()->json($data);
     }
 
     public function notifications(Request $request)
     {
-        \MercadoPago\SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
+        SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
         $contents = $request->all();
         switch($contents["type"]) {
             case "payment":
-                $payment = \MercadoPago\Payment::find_by_id($contents["data"]["id"]);
+                $payment = Payment::find_by_id($contents["data"]["id"]);
                 $pagamento = Pagamento::where('codigo', $contents["data"]["id"])->first();
                 if ($payment->status == 'approved') {
                     $inscricao = $pagamento->inscricao;

@@ -4,6 +4,9 @@ color secondary: #196572ff
 color dark: #071b1eff
 
 */
+#error-bricks:empty {
+    display: none;
+}
 
 .icon-card{
     width:15px;
