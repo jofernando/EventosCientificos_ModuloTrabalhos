@@ -15,11 +15,6 @@ class Inscricao extends Model
         return $this->belongsTo('App\Models\Submissao\Evento', 'evento_id');
     }
 
-    public function promocao()
-    {
-        return $this->belongsTo('App\Models\Inscricao\Promocao', 'promocao_id');
-    }
-
     public function user()
     {
         return $this->belongsTo('App\Models\Users\User', 'user_id');
@@ -28,11 +23,6 @@ class Inscricao extends Model
     public function pagamento()
     {
         return $this->belongsTo('App\Models\Inscricao\Pagamento', 'pagamento_id');
-    }
-
-    public function cupomDesconto()
-    {
-        return $this->belongsTo('App\Models\Inscricao\CupomDeDesconto', 'cupom_desconto_id');
     }
 
     public function camposPreenchidos()

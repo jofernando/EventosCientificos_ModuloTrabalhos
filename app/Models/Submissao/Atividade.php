@@ -40,11 +40,6 @@ class Atividade extends Model
         return $this->hasMany('App\Models\Submissao\DatasAtividade', 'atividade_id');
     }
 
-    public function promocoes()
-    {
-        return $this->belongsToMany('App\Models\Inscricao\Promocao', 'atividades_promocaos', 'atividade_id', 'promocao_id');
-    }
-
     public function users()
     {
         return $this->belongsToMany(User::class, 'atividades_user', 'atividade_id', 'user_id');
