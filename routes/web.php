@@ -17,7 +17,6 @@ use App\Http\Controllers\Inscricao\CampoFormularioController;
 use App\Http\Controllers\Inscricao\CategoriaController;
 use App\Http\Controllers\Inscricao\CheckoutController;
 use App\Http\Controllers\Inscricao\InscricaoController;
-use App\Http\Controllers\Inscricao\PromocaoController;
 use App\Http\Controllers\Submissao\AreaController;
 use App\Http\Controllers\Submissao\ArquivoInfoController;
 use App\Http\Controllers\Submissao\AssinaturaController;
@@ -391,8 +390,6 @@ Route::group(['middleware' => ['auth', 'verified', 'isTemp']], function () {
     Route::post('/inscricoes/inscrever', [InscricaoController::class, 'inscrever'])->name('inscricao.inscrever');
     Route::delete('/inscricoes/{inscricao}/cancelar/', [InscricaoController::class, 'cancelar'])->name('inscricao.cancelar');
     Route::post('inscricoes/{inscricao}/aprovar', [InscricaoController::class, 'aprovar'])->name('coord.inscricoes.aprovar');
-    Route::get('inscricoes/atividades-da-promocao', [PromocaoController::class, 'atividades'])->name('promocao.atividades');
-    Route::get('inscricoes/checar-cupom', [CupomDeDescontoController::class, 'checar'])->name('checar.cupom');
     Route::post('{id}/inscricoes/nova-inscricao/checar', [InscricaoController::class, 'checarDados'])->name('inscricao.checar');
     Route::get('{id}/inscricoes/nova-inscricao/voltar', [InscricaoController::class, 'voltarTela'])->name('inscricao.voltar');
     Route::post('/inscricoes/salvar-campo-formulario', [CampoFormularioController::class, 'store'])->name('campo.formulario.store');
@@ -403,23 +400,12 @@ Route::group(['middleware' => ['auth', 'verified', 'isTemp']], function () {
         Route::get('/tela-pagamento/{evento}', [CheckoutController::class, 'telaPagamento'])->name('telaPagamento');
         Route::get('/status-pagamento/{evento}', [CheckoutController::class, 'statusPagamento'])->name('statusPagamento');
         Route::post('/process_payment', [CheckoutController::class, 'processPayment'])->name('processPayment');
-        Route::post('/confirmar-inscricao/{id}', [CheckoutController::class, 'index'])->name('index');
-        Route::post('/proccess', [CheckoutController::class, 'proccess'])->name('proccess');
-        Route::get('/obrigado', [CheckoutController::class, 'obrigado'])->name('obrigado');
         Route::get('/{id}/pagamentos', [CheckoutController::class, 'listarPagamentos'])->name('pagamentos');
-        Route::post('/pag-boleto', [CheckoutController::class, 'pagBoleto'])->name('boleto');
 
     });
-    //Pagamentos
 
     Route::get('inscricoes/evento-{id}/index', [InscricaoController::class, 'index'])->name('inscricoes');
-    Route::post('inscricoes/criar-promocao', [PromocaoController::class, 'store'])->name('promocao.store');
-    Route::post('inscricoes/{id}/editar-promocao', [PromocaoController::class, 'update'])->name('promocao.update');
-    Route::post('inscricoes/destroy/{id}-promocao', [PromocaoController::class, 'destroy'])->name('promocao.destroy');
     Route::get('inscricoes/{idInscricao}/download/{idCampo}', [InscricaoController::class, 'downloadFileCampoExtra'])->name('download.arquivo.inscricao');
-    Route::post('inscricoes/criar-cupom', [CupomDeDescontoController::class, 'store'])->name('cupom.store');
-    Route::post('inscricoes/editar-cupom/{id}', [CupomDeDescontoController::class, 'update'])->name('cupom.update');
-    Route::get('inscricoes/destroy/{id}-cupom', [CupomDeDescontoController::class, 'destroy'])->name('cupom.destroy');
 
     Route::post('inscricoes/criar-categoria-participante', [CategoriaController::class, 'store'])->name('categoria.participante.store');
     Route::delete('{id}/inscricoes/excluir-categoria', [CategoriaController::class, 'destroy'])->name('categoria.participante.destroy');
