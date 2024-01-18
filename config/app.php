@@ -18,6 +18,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'metodo_pagamento' => env('METODO_PAGAMENTO', 'mercadopago'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
