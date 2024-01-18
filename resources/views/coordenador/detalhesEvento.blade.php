@@ -35,11 +35,6 @@
                                     <img src="{{asset('img/icons/edit-regular-white.svg')}}" alt=""><h5>Inscrições</h5>
                                 </li>
                             </a> --}}
-                            <a id="cadastrarModalidade" href="{{ route('checkout.pagamentos', ['id' => $evento->id]) }}">
-                                <li>
-                                    <img src="{{asset('img/icons/edit-regular-white.svg')}}" alt=""><h5>Pagamentos</h5>
-                                </li>
-                            </a>
                             <a id="pdfadicional" href="{{route('coord.arquivos-adicionais', $evento)}}">
                                 <li>
                                     <img src="{{asset('img/icons/file-alt-regular.svg')}}" alt=""><h5>Arquivos adicionais</h5>
@@ -227,6 +222,11 @@
                             <a href="{{ route('inscricao.inscritos', $evento) }}">
                                 <li>
                                     <img src="{{asset('img/icons/list.svg')}}" alt=""><h5>Inscritos</h5>
+                                </li>
+                            </a>
+                            <a id="cadastrarModalidade" href="{{ route('checkout.pagamentos', ['id' => $evento->id]) }}">
+                                <li>
+                                    <img src="{{asset('img/icons/edit-regular-white.svg')}}" alt=""><h5>Pagamentos</h5>
                                 </li>
                             </a>
                         </div>
