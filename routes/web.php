@@ -404,7 +404,6 @@ Route::group(['middleware' => ['auth', 'verified', 'isTemp']], function () {
 
     });
 
-    Route::get('inscricoes/evento-{id}/index', [InscricaoController::class, 'index'])->name('inscricoes');
     Route::get('inscricoes/{idInscricao}/download/{idCampo}', [InscricaoController::class, 'downloadFileCampoExtra'])->name('download.arquivo.inscricao');
 
     Route::post('inscricoes/criar-categoria-participante', [CategoriaController::class, 'store'])->name('categoria.participante.store');
