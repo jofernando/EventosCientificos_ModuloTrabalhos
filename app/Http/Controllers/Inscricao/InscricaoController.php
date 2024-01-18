@@ -19,32 +19,6 @@ use Illuminate\Support\Facades\Validator;
 
 class InscricaoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index($id)
-    {
-        $evento = Evento::find($id);
-        $this->authorize('isCoordenadorOrCoordenadorDaComissaoOrganizadora', $evento);
-
-        $promocoes = Promocao::where('evento_id', $id)->get();
-        $atividades = Atividade::where('eventoId', $id)->get();
-        $cuponsDeDescontro = CupomDeDesconto::where('evento_id', $id)->get();
-        $categoriasParticipante = CategoriaParticipante::where('evento_id', $id)->get();
-        $camposDoFormulario = CampoFormulario::where('evento_id', $id)->get();
-        $users = $evento->inscritos();
-
-        return view('coordenador.programacao.inscricoes', ['evento' => $evento,
-            'promocoes' => $promocoes,
-            'atividades' => $atividades,
-            'cupons' => $cuponsDeDescontro,
-            'categorias' => $categoriasParticipante,
-            'users' => $users,
-            'campos' => $camposDoFormulario, ]);
-    }
-
     public function inscritos(Evento $evento)
     {
         $this->authorize('isCoordenadorOrCoordenadorDaComissaoOrganizadora', $evento);
@@ -67,76 +41,6 @@ class InscricaoController extends Controller
         $categorias = $evento->categoriasParticipantes;
 
         return view('coordenador.inscricoes.categorias', compact('evento', 'categorias'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create($id)
-    {
-        $evento = Evento::find($id);
-
-        return view('evento.nova_inscricao', ['evento' => $evento,
-            'eventoVoltar' => null,
-            'valorTotalVoltar' => null,
-            'promocaoVoltar' => null,
-            'atividadesVoltar' => null,
-            'cupomVoltar' => null,
-            'inscricao' => null, ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $inscricao = Inscricao::find($request->inscricao_id);
-
-        if ($inscricao != null) {
-            $inscricao->finalizada = true;
-            $inscricao->update();
-
-            return response()->json('OK.', 200);
-        }
-
-        return response()->json('Não encontrado.', 404);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
     }
 
     /**
@@ -180,128 +84,6 @@ class InscricaoController extends Controller
         $this->authorize('isCoordenadorOrCoordenadorDaComissaoOrganizadora', $evento);
         $this->destroy($inscricao->id);
         return redirect()->back()->with('message', 'Inscrição cancelada com sucesso!');
-    }
-
-    public function checarDados(Request $request, $id)
-    {
-        $validatorData = $request->validate([
-            'categoria' => 'required',
-            'promocao' => 'nullable',
-            'valorTotal' => 'required',
-            'atividades' => 'nullable',
-            'cupom' => 'nullable',
-            'atividadesPromo' => 'nullable',
-            'valorPromocao' => 'nullable',
-            'descricaoPromo' => 'nullable',
-        ]);
-
-        $categoria = CategoriaParticipante::find($request->categoria);
-        $validator = $this->validarCamposExtras($request, $categoria);
-
-        if ($validator->fails()) {
-            return redirect()
-                ->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('abrirmodalinscricao', true);
-        }
-        $evento = Evento::find($id);
-
-        if ($evento->recolhimento == 'gratuito' && $request->valorTotal * 1 == 0) {
-            return $this->cadastrarInscricaoRetornarProEvento($evento, $request, $categoria);
-        }
-
-        $valorDaInscricao = $request->valorTotal;
-        $promocao = null;
-        $atividades = null;
-        $valorComDesconto = null;
-        $cupom = null;
-
-        if ($request->revisandoInscricao != null) {
-            $inscricao = Inscricao::find($request->revisandoInscricao);
-            $cupom = $inscricao->cupomDesconto;
-        } else {
-            $cupom = CupomDeDesconto::where([['evento_id', $evento->id], ['identificador', '=', $request->cupom]])->first();
-        }
-
-        if ($request->cupom != null || $request->revisandoInscricao != null) {
-            if ($cupom != null && $cupom->porcentagem) {
-                $valorComDesconto = $valorDaInscricao - $valorDaInscricao * ($cupom->valor / 100);
-            } else {
-                $valorComDesconto -= $cupom->valor;
-            }
-        }
-
-        if ($request->promocao != null) {
-            $promocao = Promocao::find($request->promocao);
-        }
-
-        if ($request->atividades != null) {
-            if ($promocao->atividades != null) {
-                $idsAtvsPromo = $promocao->atividades()->select('atividades.id')->get();
-                foreach ($request->atividades as $atv) {
-                    if ($idsAtvsPromo->contains($atv)) {
-                        return redirect()->back()->withErrors(['atvIguais' => 'Existem atividades adicionais que já estão presentes no pacote. Logo foram removidas.'])->withInput($validatorData);
-                    }
-                }
-            }
-            $atividades = Atividade::whereIn('id', $request->atividades)->get();
-        }
-
-        if ($request->revisandoInscricao != null) {
-            $inscricao = Inscricao::find($request->revisandoInscricao);
-            $inscricao->user_id = auth()->user()->id;
-            $inscricao->evento_id = $evento->id;
-            $inscricao->categoria_participante_id = $categoria->id;
-            if ($promocao != null) {
-                $inscricao->promocao_id = $promocao->id;
-            }
-            if ($cupom != null) {
-                $inscricao->cupom_desconto_id = $cupom->id;
-            }
-            $inscricao->pagamento_id = null;
-            $inscricao->finalizada = false;
-            $inscricao->update();
-
-            $this->salvarCamposExtras($inscricao, $request, $categoria);
-        } else {
-            $inscricao = new Inscricao();
-            $inscricao->user_id = auth()->user()->id;
-            $inscricao->evento_id = $evento->id;
-            $inscricao->categoria_participante_id = $categoria->id;
-            if ($promocao != null) {
-                $inscricao->promocao_id = $promocao->id;
-            }
-            if ($cupom != null) {
-                $inscricao->cupom_desconto_id = $cupom->id;
-            }
-            $inscricao->pagamento_id = null;
-            $inscricao->finalizada = false;
-            $inscricao->save();
-
-            $this->salvarCamposExtras($inscricao, $request, $categoria);
-        }
-
-        return view('evento.revisar_inscricao', ['evento' => $evento,
-            'valor' => $valorDaInscricao,
-            'promocao' => $promocao,
-            'atividades' => $atividades,
-            'cupom' => $cupom,
-            'valorComDesconto' => $valorComDesconto,
-            'inscricao' => $inscricao, ]);
-    }
-
-    public function cadastrarInscricaoRetornarProEvento(Evento $evento, Request $request, CategoriaParticipante $categoria)
-    {
-        $inscricao = new Inscricao();
-        $inscricao->user_id = auth()->user()->id;
-        $inscricao->evento_id = $evento->id;
-        $inscricao->categoria_participante_id = $categoria->id;
-        $inscricao->finalizada = !$evento->formEvento->modvalidarinscricao;
-        $inscricao->save();
-        $this->salvarCamposExtras($inscricao, $request, $categoria);
-
-        return redirect()->action([EventoController::class, 'show'], ['id' => $evento->id])->with('message', 'Inscrição realizada com sucesso');
     }
 
     public function inscrever(Request $request)
@@ -354,27 +136,6 @@ class InscricaoController extends Controller
 
             return redirect()->action([EventoController::class, 'show'], ['id' => $request->evento_id])->with('message', 'Inscrição realizada com sucesso');
         }
-    }
-
-    public function voltarTela(Request $request, $id)
-    {
-        $atividadeExtras = null;
-        $inscricao = Inscricao::find($id);
-
-        if ($request->atividades != null) {
-            $atividadeExtras = Atividade::whereIn('id', $request->atividades)->get();
-        }
-
-        $valorTotal = $request->valorTotal;
-
-        return view('evento.nova_inscricao',
-            [
-                'evento' => $inscricao->evento,
-                'inscricao' => $inscricao,
-                'atividadesExtras' => $atividadeExtras,
-                'valorTotal' => $valorTotal,
-            ]
-        );
     }
 
     public function confirmar(Request $request, $id)
