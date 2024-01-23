@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Inscricao\Pagamento;
 
-use App\Models\Inscricao\Inscricao;
 use App\Models\Inscricao\Pagamento;
 use App\Models\Inscricao\TipoPagamento;
 use App\Models\Submissao\Evento;
+use Exception;
 use Illuminate\Http\Request;
 use MercadoPago\Payer;
 use MercadoPago\Payment;
@@ -152,7 +152,7 @@ class MercadoPago implements PagamentoInterface
                 break;
         }
 
-        // $payment->notification_url = route('checkout.notifications');
+        $payment->notification_url = route('checkout.notifications');
         $response = $payment->save();
         if (! $response || $payment->id == null) {
             throw new Exception($payment->error->message);
