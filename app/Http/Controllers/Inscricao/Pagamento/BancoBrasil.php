@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Inscricao\Pagamento;
 
 use App\Http\Controllers\Inscricao\Pagamento\PagamentoInterface;
-use App\Models\Inscricao\CategoriaParticipante;
-use App\Models\Inscricao\Inscricao;
 use App\Models\Inscricao\Pagamento;
 use App\Models\Inscricao\TipoPagamento;
 use App\Models\Submissao\Evento;
-use App\Models\Users\User;
 use App\Services\BB\Pix;
 use Illuminate\Http\Request;
 
@@ -37,7 +34,7 @@ class BancoBrasil implements PagamentoInterface
         $tipo_pagamento = TipoPagamento::where('descricao', 'pix')->first();
 
         $devedor = $this->devedor($request);
-        $valor = $this->formatarValor($categoria->valor);
+        $valor = $this->formatarValor($categoria->valor_total);
         $response = $this->pix->criarCobrancaImediata($devedor, $valor);
 
         $pagamento = Pagamento::create([
@@ -55,12 +52,25 @@ class BancoBrasil implements PagamentoInterface
 
     public function telaStatus(Evento $evento)
     {
-        return view('inscricao.pagamento.bancobrasil.status', compact('evento'));
+        $user = auth()->user();
+        $inscricao = $evento->inscricaos()->where('user_id', $user->id)->first();
+        $pagamento = $inscricao->pagamento;
+        $response = $this->pix->consultarCobrancaImediata($pagamento->codigo);
+        return view('inscricao.pagamento.bancobrasil.status', compact('evento', 'user', 'pagamento', 'response'));
     }
 
     public function webhook(Request $request)
     {
-        // TODO: Implement webhook() method.
+        $pagamento = Pagamento::where('codigo', $request['pix']['txid']);
+        $response = $this->pix->consultarCobrancaImediata($pagamento->codigo);
+        if ($response['status'] == 'CONCLUIDA') {
+            $inscricao = $pagamento->inscricao;
+            $inscricao->finalizada = true;
+            $inscricao->save();
+        }
+        $pagamento->status = $response['status'];
+        $pagamento->save();
+        return response(status: 200);
     }
 
     private function somenteDigitos($cep)
@@ -83,7 +93,7 @@ class BancoBrasil implements PagamentoInterface
             'email' => $request->email,
             'nome' => $request->name,
         ];
-        if ($request->ehCpf)
+        if ($request->boolean('ehCpf'))
             $devedor['cpf'] = $this->somenteDigitos($request->cpf);
         else
             $devedor['cnpj'] = $this->somenteDigitos($request->cnpj);
