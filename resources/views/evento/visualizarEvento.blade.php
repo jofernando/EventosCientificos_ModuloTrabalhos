@@ -84,7 +84,7 @@
                     <div class="modal-footer">
                         @if ($isInscrito)
                             @if(!$atv->atividadeInscricoesEncerradas())
-                                @if($atv->vagas > 0 && Auth::user()->atividades()->find($atv->id) == null)
+                                @if(($atv->vagas > 0 || $atv->vagas == null) && Auth::user()->atividades()->find($atv->id) == null)
                                     <form method="POST" action="{{route('atividades.inscricao', ['id'=>$atv->id])}}">
                                         @csrf
                                         <button type="submit" class="button-prevent-multiple-submits btn btn-primary">Inscrever-se</button>
@@ -144,6 +144,7 @@
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
+
                             </div>
                         </div>
                     </div>
@@ -204,7 +205,9 @@
                                         <select x-model="categoria" name="categoria" id="categoria" class="form-control">
                                             <option value="0" disabled>-- Escolha sua categoria --</option>
                                             @foreach ($evento->categoriasParticipantes()->where('permite_inscricao', true)->get() as $categoria)
-                                                <option value="{{$categoria->id}}" @if (old('categoria') == $categoria->id) selected @endif>{{$categoria->nome}}</option>
+                                                @if ($categoria->limite_inscricao == null || $categoria->limite_inscricao > now())
+                                                    <option value="{{$categoria->id}}" @if (old('categoria') == $categoria->id) selected @endif>{{$categoria->nome}}</option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>
@@ -456,6 +459,15 @@
                             </div>
                         </div>
                         @if ($etiquetas->modprogramacao == true && $evento->exibir_calendario_programacao)
+
+                            <div id="mensagem-aviso" class="alert alert-info alert-dismissible fade show" role="alert">
+                                Para participar das atividades do evento, é preciso primeiro se inscrever no evento e, em seguida, realizar a inscrição na atividade desejada, disponível na seção de Programação.
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+
                             <div class="row" style="margin-bottom: 10px;">
                                 <div class="col-sm-12">
                                     <div class="card sombra-card" style="width: 100%;">
@@ -480,6 +492,7 @@
                             </div>
                         @endif
                     </div>
+
                     <div class="col-xl-4">
                         @if ($etiquetas->modinscricao == true)
                             <div class="row" style="margin-bottom: 10px;">
@@ -525,6 +538,8 @@
                                                 <h4 style="font-weight: bold; border-bottom: solid 3px #114048ff;">Informações</h4>
                                             </div>
                                         </div>
+
+
                                         @if ($evento->exibir_pdf && $etiquetas->modprogramacao == true && $evento->pdf_programacao != null)
                                             <div class="form-row justify-content-center @if($evento->exibir_pdf && $etiquetas->modprogramacao && $evento->pdf_programacao) mb-3 @endif">
                                                 <div class="col-sm-3 form-group " style="position: relative; text-align: center;">
@@ -595,6 +610,7 @@
                                                                             </div>
                                                                         </a>
                                                                     </div>
+
                                                                     <div id="{{ 'collapse_' . $modalidade->id }}" class="accordion-body in collapse" style="height: auto;">
                                                                         {{-- <div class="accordion-inner"> --}}
                                                                         <div class="row">
@@ -704,6 +720,7 @@
                                                 </div>
                                             </div>
                                         @endif
+
                                         <div class="form-row" style="margin-top: 15px; justify-content: center;">
                                             <div class="col-sm-3" style="text-align: center;">
                                                 <div class="div-icon-programacao">
@@ -734,6 +751,7 @@
                                                     <h4 style="font-weight: bold; border-bottom: solid 3px #114048ff;">Memória</h4>
                                                 </div>
                                             </div>
+
                                             @foreach ($evento->memorias as $memoria)
                                                 <div class="form-row justify-content-center">
                                                     <div class="col-sm-3 form-group ">
@@ -945,4 +963,13 @@
             });
         </script>
     @endif
+    <script>
+        // Fecha a caixa de aviso quando o botão de fechar é clicado
+        $(document).ready(function() {
+            $('.alert-dismissible').on('closed.bs.alert', function () {
+                // Envia uma requisição para o servidor para marcar a mensagem como lida, se necessário
+                // Exemplo: usar AJAX para enviar um POST request para marcar a mensagem como lida no banco de dados
+            });
+        });
+    </script>
 @endsection

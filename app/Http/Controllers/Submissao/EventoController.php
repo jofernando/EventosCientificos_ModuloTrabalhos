@@ -1801,4 +1801,11 @@ class EventoController extends Controller
 
         return view('coordenador.evento.eventosPassados',compact('eventosPassados'));
     }
+
+    public function eventosProximos(){
+
+        $proximosEventos = Evento::where([['publicado', '=', true], ['deletado', '=', false], ['dataFim', '>=', today()]])->whereNull('evento_pai_id')->get();
+
+        return view('coordenador.evento.eventosProximos',compact('proximosEventos'));
+    }
 }
